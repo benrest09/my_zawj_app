@@ -111,7 +111,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _fotoProfilPath = 'assets/images/avatar_ikhwan.png';
+                        _fotoProfilPath = 'assets/images/ikhwan.png';
                       });
                       Navigator.pop(context);
                     },
@@ -120,7 +120,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                         CircleAvatar(
                           radius: 40,
                           backgroundImage: AssetImage(
-                            'assets/images/avatar_ikhwan.png',
+                            'assets/images/ikhwan.png',
                           ),
                         ),
                         SizedBox(height: 8),

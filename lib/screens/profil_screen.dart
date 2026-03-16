@@ -202,8 +202,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             data['foto_profil'].toString().isNotEmpty)
                         ? data['foto_profil'].toString()
                         : (data['jenis_kelamin'] == 'Akhwat'
-                              ? 'assets/images/avatar_akhwat.png'
-                              : 'assets/images/avatar_ikhwan.png'),
+                              ? 'assets/images/akhwat.png'
+                              : 'assets/images/ikhwan.png'),
                   ),
                 ),
 
