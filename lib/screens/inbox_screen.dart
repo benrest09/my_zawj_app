@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zawj_app/controllers/inbox_controller.dart';
+import 'package:zawj_app/database/sqflite.dart';
+import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/models/inbox_model.dart';
+import 'package:zawj_app/screens/chat_group_screen.dart';
+import 'package:zawj_app/screens/detail_inbox.dart';
 import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 
@@ -25,36 +29,49 @@ class _InboxScreenState extends State<InboxScreen> {
   }
 
   Future<void> _loadInbox() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
     });
 
-    final userId = await PreferenceHandler.getUserId();
+    try {
+      final userId = await PreferenceHandler.getUserId();
+      debugPrint('INBOX USER ID: $userId');
 
-    if (userId == null) {
+      if (userId == null) {
+        if (!mounted) return;
+        setState(() {
+          _items = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final result = await _controller.getInboxTaaruf(userId);
+
+      if (!mounted) return;
+      setState(() {
+        _items = result;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('ERROR LOAD INBOX: $e');
+
       if (!mounted) return;
       setState(() {
         _items = [];
         _isLoading = false;
       });
-      return;
     }
-
-    final result = await _controller.getInboxTaaruf(userId);
-
-    if (!mounted) return;
-    setState(() {
-      _items = result;
-      _isLoading = false;
-    });
   }
 
   Color _statusColor(String status) {
     switch (status) {
       case 'accepted':
-        return Colors.green;
+        return AppColor.success;
       case 'rejected':
-        return Colors.red;
+        return AppColor.error;
       default:
         return AppColor.pinktua;
     }
@@ -103,6 +120,7 @@ class _InboxScreenState extends State<InboxScreen> {
   }
 
   Future<void> _hapusInbox(InboxModel item) async {
+    if (item.status != 'rejected') return;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -110,12 +128,12 @@ class _InboxScreenState extends State<InboxScreen> {
         content: const Text('Apakah Anda yakin ingin menghapus inbox ini?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => context.pop(false),
             child: const Text('Batal'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => context.pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColor.error),
             child: const Text('Hapus'),
           ),
         ],
@@ -131,7 +149,7 @@ class _InboxScreenState extends State<InboxScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Inbox berhasil dihapus'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColor.success,
           ),
         );
         await _loadInbox();
@@ -139,7 +157,7 @@ class _InboxScreenState extends State<InboxScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Inbox gagal dihapus'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColor.error,
           ),
         );
       }
@@ -209,8 +227,8 @@ class _InboxScreenState extends State<InboxScreen> {
     final avatarPath = ((item.fotoProfil ?? '').isNotEmpty)
         ? item.fotoProfil!
         : (item.jenisKelamin == 'Akhwat'
-              ? 'assets/images/avatar_akhwat.png'
-              : 'assets/images/avatar_ikhwan.png');
+              ? 'assets/images/akhwat.png'
+              : 'assets/images/ikhwan.png');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -323,6 +341,9 @@ class _InboxScreenState extends State<InboxScreen> {
               ),
             ),
             const SizedBox(height: 16),
+
+            const SizedBox(height: 16),
+
             if (item.status == 'pending') ...[
               Row(
                 children: [
@@ -370,20 +391,23 @@ class _InboxScreenState extends State<InboxScreen> {
               ),
               const SizedBox(height: 10),
             ],
+
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _hapusInbox(item),
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                onPressed: () {
+                  context.push(DetailInboxScreen(item: item));
+                },
+                icon: Icon(Icons.visibility_outlined, color: AppColor.pinktua),
                 label: Text(
-                  'Hapus',
+                  'Lihat Detail',
                   style: GoogleFonts.montserrat(
                     fontWeight: FontWeight.bold,
-                    color: Colors.red,
+                    color: AppColor.pinktua,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.red),
+                  side: BorderSide(color: AppColor.pinktua),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
@@ -391,6 +415,78 @@ class _InboxScreenState extends State<InboxScreen> {
                 ),
               ),
             ),
+
+            if (item.status == 'rejected') ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _hapusInbox(item),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  label: Text(
+                    'Hapus Inbox',
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.red),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
+
+            if (item.status == 'accepted') ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final ruangChat = await DBHelper.getRuangChatByRequestId(
+                      item.id,
+                    );
+                    if (!mounted) return;
+                    if (ruangChat == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Ruang chat tidak ditemukan")),
+                      );
+                      return;
+                    }
+                    final int ruangChatId = ruangChat['id'] as int;
+                    context.push(
+                      GroupChatScreen(
+                        ruangChatId: ruangChatId,
+                        namaLawanBicara: item.namaLengkap,
+                      ),
+                    );
+                  },
+                  icon: const Icon(
+                    Icons.chat_bubble_outline,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    'Masuk Chat',
+                    style: GoogleFonts.montserrat(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

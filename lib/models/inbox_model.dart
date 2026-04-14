@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 class InboxModel {
   final int id;
   final int pengajuId;
@@ -36,16 +35,16 @@ class InboxModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
-      'pengajuId': pengajuId,
-      'targetId': targetId,
+      'pengaju_id': pengajuId,
+      'target_id': targetId,
       'status': status,
-      'pesanPengajuan': pesanPengajuan,
-      'createdAt': createdAt,
-      'namaLengkap': namaLengkap,
-      'jenisKelamin': jenisKelamin,
+      'pesan_pengajuan': pesanPengajuan,
+      'created_at': createdAt,
+      'nama_lengkap': namaLengkap,
+      'jenis_kelamin': jenisKelamin,
       'usia': usia,
       'domisili': domisili,
-      'fotoProfil': fotoProfil,
+      'foto_profil': fotoProfil,
       'pendidikan': pendidikan,
       'pekerjaan': pekerjaan,
     };
@@ -53,21 +52,27 @@ class InboxModel {
 
   factory InboxModel.fromMap(Map<String, dynamic> map) {
     return InboxModel(
-      id: map['id'] as int,
-      pengajuId: map['pengajuId'] as int,
-      targetId: map['targetId'] as int,
-      status: map['status'] as String,
-      pesanPengajuan: map['pesanPengajuan'] as String,
-      createdAt: map['createdAt'] != null ? map['createdAt'] as String : null,
-      namaLengkap: map['namaLengkap'] as String,
-      jenisKelamin: map['jenisKelamin'] as String,
-      usia: map['usia'] as int,
-      domisili: map['domisili'] as String,
-      fotoProfil: map['fotoProfil'] != null
-          ? map['fotoProfil'] as String
-          : null,
-      pendidikan: map['pendidikan'] as String,
-      pekerjaan: map['pekerjaan'] as String,
+      id: map['id'] is int
+          ? map['id'] as int
+          : int.tryParse(map['id']?.toString() ?? '0') ?? 0,
+      pengajuId: map['pengaju_id'] is int
+          ? map['pengaju_id'] as int
+          : int.tryParse(map['pengaju_id']?.toString() ?? '0') ?? 0,
+      targetId: map['target_id'] is int
+          ? map['target_id'] as int
+          : int.tryParse(map['target_id']?.toString() ?? '0') ?? 0,
+      status: map['status']?.toString() ?? 'pending',
+      pesanPengajuan: map['pesan_pengajuan']?.toString() ?? '',
+      createdAt: map['created_at']?.toString(),
+      namaLengkap: map['nama_lengkap']?.toString() ?? '-',
+      jenisKelamin: map['jenis_kelamin']?.toString() ?? '-',
+      usia: map['usia'] is int
+          ? map['usia'] as int
+          : int.tryParse(map['usia']?.toString() ?? '0') ?? 0,
+      domisili: map['domisili']?.toString() ?? '-',
+      fotoProfil: map['foto_profil']?.toString(),
+      pendidikan: map['pendidikan']?.toString() ?? '-',
+      pekerjaan: map['pekerjaan']?.toString() ?? '-',
     );
   }
 

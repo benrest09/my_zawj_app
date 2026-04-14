@@ -2,6 +2,14 @@ import 'package:zawj_app/database/sqflite.dart';
 import 'package:zawj_app/models/user_model.dart';
 import 'package:zawj_app/services/preference_handler.dart';
 
+class LoginResult {
+  final bool success;
+  final String? message;
+  final UserModel? user;
+
+  LoginResult({required this.success, this.message, this.user});
+}
+
 class AuthController {
   Future<String?> register({
     required String nama,
@@ -9,58 +17,78 @@ class AuthController {
     required String password,
     required String konfirmasiPassword,
   }) async {
-    if (nama.trim().isEmpty ||
-        email.trim().isEmpty ||
-        password.trim().isEmpty ||
-        konfirmasiPassword.trim().isEmpty) {
+    final namaBersih = nama.trim();
+    final emailBersih = email.trim().toLowerCase();
+    final passwordBersih = password.trim();
+    final konfirmasiBersih = konfirmasiPassword.trim();
+
+    if (namaBersih.isEmpty ||
+        emailBersih.isEmpty ||
+        passwordBersih.isEmpty ||
+        konfirmasiBersih.isEmpty) {
       return 'Semua field harus diisi';
     }
 
-    if (!email.contains('@gmail.com')) {
+    if (!emailBersih.contains('@gmail.com')) {
       return 'Format email tidak valid';
     }
 
-    if (password.length < 6) {
-      return 'Password miinmal 6 karakter';
+    if (passwordBersih.length < 6) {
+      return 'Password minimal 6 karakter';
     }
 
-    if (password != konfirmasiPassword) {
+    if (passwordBersih != konfirmasiBersih) {
       return 'Konfirmasi password tidak sama';
     }
 
-    final emailSudahAda = await DBHelper.isEmailExists(email);
+    final emailSudahAda = await DBHelper.isEmailExists(emailBersih);
     if (emailSudahAda) {
       return 'Email sudah terdaftar';
     }
 
-    final user = UserModel(nama: nama, email: email, password: password);
+    final user = UserModel(
+      nama: namaBersih,
+      email: emailBersih,
+      password: passwordBersih,
+      role: 'user',
+    );
 
     await DBHelper.registerUser(user);
 
     return null;
   }
 
-  Future<String?> login({
+  Future<LoginResult> login({
     required String email,
     required String password,
   }) async {
-    if (email.trim().isEmpty || password.trim().isEmpty) {
-      return 'Email dan password wajib diisi';
+    final emailBersih = email.trim().toLowerCase();
+    final passwordBersih = password.trim();
+
+    if (emailBersih.isEmpty || passwordBersih.isEmpty) {
+      return LoginResult(
+        success: false,
+        message: 'Email dan password wajib diisi',
+      );
     }
 
-    final user = await DBHelper.loginUser(email: email, password: password);
+    final user = await DBHelper.loginUser(
+      email: emailBersih,
+      password: passwordBersih,
+    );
 
     if (user == null) {
-      return 'Email atau password salah';
+      return LoginResult(success: false, message: 'Email atau password salah');
     }
 
     await PreferenceHandler.simpanLogin(
       userId: user.id!,
       nama: user.nama,
       email: user.email,
+      role: user.role,
     );
 
-    return null;
+    return LoginResult(success: true, user: user);
   }
 
   Future<void> logout() async {

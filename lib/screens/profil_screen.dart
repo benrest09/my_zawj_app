@@ -235,26 +235,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _loadProfile();
                   },
                 ),
-
-                ElevatedButton(
-                  onPressed: _logout,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text(
-                    "Logout",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 20),
-
         _infoCard(
-          label: "Tempat, Tanggal Lahir",
-          value:
-              "${data['tempat_lahir'] ?? '-'}, ${data['tanggal_lahir'] ?? '-'}",
-          icon: Icons.cake_outlined,
+          label: "Tentang Saya",
+          value: data['tentang_saya'] ?? '-',
+          icon: Icons.notes_outlined,
         ),
         _infoCard(
           label: "Domisili",
@@ -287,11 +276,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.business_center_outlined,
         ),
         _infoCard(
-          label: "Penghasilan",
-          value: data['penghasilan'] ?? '-',
-          icon: Icons.payments_outlined,
-        ),
-        _infoCard(
           label: "Target Menikah",
           value: data['target_nikah'] ?? '-',
           icon: Icons.favorite_outline,
@@ -300,11 +284,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           label: "Status Pernikahan",
           value: data['status_nikah'] ?? '-',
           icon: Icons.people_alt_outlined,
-        ),
-        _infoCard(
-          label: "Tentang Saya",
-          value: data['tentang_saya'] ?? '-',
-          icon: Icons.notes_outlined,
         ),
         _infoCard(
           label: "Sholat",
@@ -322,6 +301,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.auto_stories_outlined,
         ),
         SizedBox(height: 20),
+        SizedBox(
+          width: 350,
+          height: 55,
+          child: ElevatedButton(
+            onPressed: _logout,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(
+              "Logout",
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

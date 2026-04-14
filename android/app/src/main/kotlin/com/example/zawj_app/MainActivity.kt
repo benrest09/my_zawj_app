@@ -1,4 +1,4 @@
-package com.ning.my_zawj_app
+package com.example.zawj_app
 
 import io.flutter.embedding.android.FlutterActivity
 

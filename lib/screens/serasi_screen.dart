@@ -20,8 +20,6 @@ class _SerasiScreenState extends State<SerasiScreen> {
 
   List<SerasiModel> _profiles = [];
   bool _isLoading = true;
-  String _jenisKelamin = 'Ikhwan';
-  int? _userId;
 
   @override
   void initState() {
@@ -30,36 +28,61 @@ class _SerasiScreenState extends State<SerasiScreen> {
   }
 
   Future<void> _loadSerasi() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
     });
 
-    final userId = await PreferenceHandler.getUserId();
+    try {
+      final int? idPengguna = await PreferenceHandler.getUserId();
 
-    if (userId == null) {
+      if (idPengguna == null) {
+        if (!mounted) return;
+        setState(() {
+          _profiles = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final Map<String, dynamic>? profilSaya =
+          await DBHelper.getProfileByUserId(idPengguna);
+
+      final String jenisKelaminSaya = DBHelper.normalisasiJenisKelamin(
+        profilSaya?['jenis_kelamin']?.toString() ?? '',
+      );
+
+      if (jenisKelaminSaya.isEmpty) {
+        if (!mounted) return;
+        setState(() {
+          _profiles = [];
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final List<SerasiModel> profiles = await _controller.getSerasiProfiles(
+        currentUserId: idPengguna,
+        currentGender: jenisKelaminSaya,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _profiles = profiles;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error load serasi: $e');
+
+      if (!mounted) return;
+
       setState(() {
         _profiles = [];
         _isLoading = false;
       });
-      return;
     }
-
-    final myProfile = await DBHelper.getProfileByUserId(userId);
-    final myGender = myProfile?['jenis_kelamin'] ?? 'Ikhwan';
-
-    final profiles = await _controller.getSerasiProfiles(
-      currentUserId: userId,
-      currentGender: myGender,
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _userId = userId;
-      _jenisKelamin = myGender;
-      _profiles = profiles;
-      _isLoading = false;
-    });
   }
 
   Widget _buildInfoChip(IconData icon, String label) {
@@ -92,12 +115,14 @@ class _SerasiScreenState extends State<SerasiScreen> {
   }
 
   Widget _buildProfileCard(SerasiModel profile) {
-    final avatarPath =
-        (profile.fotoProfil != null && profile.fotoProfil!.isNotEmpty)
-        ? profile.fotoProfil!
-        : (profile.jenisKelamin == 'Akhwat'
-              ? 'assets/images/avatar_akhwat.png'
-              : 'assets/images/avatar_ikhwan.png');
+    final bool pakaiAsset =
+        profile.fotoProfil == null || profile.fotoProfil!.trim().isEmpty;
+
+    final String avatarPath = pakaiAsset
+        ? (profile.jenisKelamin == DBHelper.genderAkhwat
+              ? 'assets/images/akhwat.png'
+              : 'assets/images/ikhwan.png')
+        : profile.fotoProfil!;
 
     return GestureDetector(
       onTap: () {
@@ -220,11 +245,7 @@ class _SerasiScreenState extends State<SerasiScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.favorite_border_rounded,
-              size: 80,
-              color: Colors.grey.shade300,
-            ),
+            Icon(Icons.favorite_border_rounded, size: 80, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
               'Belum ada profil yang serasi',

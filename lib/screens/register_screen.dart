@@ -36,7 +36,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  void _showSnackBar(String pesan) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(pesan), behavior: SnackBarBehavior.floating),
+      );
+  }
+
   Future<void> _handleRegister() async {
+    if (_isLoading) return;
+
     setState(() {
       _isLoading = true;
     });
@@ -48,23 +58,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       konfirmasiPassword: _konfirmasiPasswordController.text,
     );
 
+    if (!mounted) return;
+
     setState(() {
       _isLoading = false;
     });
 
-    if (!mounted) return;
-
-    if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pendaftaran berhasil, silakan login')),
-      );
-
-      context.pushReplacement(const LoginScreen());
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result)));
+    if (result != null) {
+      _showSnackBar(result);
+      return;
     }
+
+    _showSnackBar('Pendaftaran berhasil, silakan login');
+
+    await Future.delayed(const Duration(milliseconds: 1200));
+
+    if (!mounted) return;
+    context.pushReplacement(const LoginScreen());
   }
 
   @override

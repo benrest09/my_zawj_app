@@ -286,7 +286,8 @@ class ArtikelScreen extends StatelessWidget {
                             ),
                             SizedBox(width: 8),
                             Text(
-                              'Tips Praktis Membangun Keluarga Islami',
+                              'Tips Praktis Membangun\n'
+                              'Keluarga Islami',
                               style: GoogleFonts.montserrat(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -417,7 +418,7 @@ class ArtikelScreen extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColor.pinkmuda,
+                    color: AppColor.roseBeige,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, color: AppColor.pinktua, size: 24),

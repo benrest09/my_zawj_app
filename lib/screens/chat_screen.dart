@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:zawj_app/database/sqflite.dart';
+import 'package:zawj_app/extention/navigator.dart';
+import 'package:zawj_app/screens/chat_group_screen.dart';
+import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -11,204 +15,124 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   // Ganti isi list ini jadi [] kalau mau lihat tampilan chat kosong
-  final List<Map<String, dynamic>> chatRooms = [
-    {
-      "name": "Aisyah Rahmah",
-      "gender": "Akhwat",
-      "lastMessage": "Assalamu'alaikum, bagaimana kabarnya?",
-      "time": "09:41",
-    },
-    {
-      "name": "Ahmad Fauzan",
-      "gender": "Ikhwan",
-      "lastMessage": "InsyaAllah saya siap mengikuti sesi taaruf.",
-      "time": "08:15",
-    },
-    {
-      "name": "Ustadz Pendamping",
-      "gender": "Ikhwan",
-      "lastMessage": "Silakan jaga adab komunikasi selama proses taaruf.",
-      "time": "Kemarin",
-    },
-  ];
+  List<Map<String, dynamic>> _daftarChat = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChat();
+  }
+
+  Future<void> _loadChat() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final userId = await PreferenceHandler.getUserId();
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() {
+        _daftarChat = [];
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final hasil = await DBHelper.getDaftarChatUser(userId);
+    if (!mounted) return;
+    setState(() {
+      _daftarChat = hasil;
+      _isLoading = false;
+    });
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Text(
+        'Belum ada percakapan',
+        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _buildChatItem(Map<String, dynamic> chat) {
+    final nama = chat['nama_lawan_bicara']?.toString() ?? 'Tanpa Nama';
+    final gender = chat['jenis_kelamin_lawan_bicara']?.toString() ?? '';
+    final pesanTerakhir =
+        chat['pesan_terakhir']?.toString() ?? 'Belum ada pesan';
+
+    final isAkhwat = gender == 'Akhwat';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          radius: 25,
+          backgroundImage: AssetImage(
+            isAkhwat ? 'assets/images/akhwat.png' : 'assets/images/ikhwan.png',
+          ),
+        ),
+        title: Text(
+          nama,
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          pesanTerakhir,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+        ),
+        onTap: () {
+          context.push(
+            GroupChatScreen(
+              ruangChatId: chat['ruang_chat_id'] as int,
+              namaLawanBicara: nama,
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffFAFAFA),
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        toolbarHeight: 70,
         backgroundColor: Colors.white,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Find My Zawj',
-              style: GoogleFonts.poppins(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: AppColor.pinktua,
-              ),
-            ),
-            Text(
-              'Pesan',
-              style: GoogleFonts.montserrat(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColor.abutua,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: chatRooms.isEmpty
-          ? const _EmptyChat()
-          : _ChatList(chatRooms: chatRooms),
-    );
-  }
-}
-
-class _EmptyChat extends StatelessWidget {
-  const _EmptyChat();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-            border: Border.all(color: Colors.pink.shade50),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Color(0xffFFF4F8),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  size: 50,
-                  color: AppColor.pinktua,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Belum ada percakapan',
-                style: GoogleFonts.montserrat(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColor.hitam,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Terima ajuan taaruf untuk memulai percakapan.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.montserrat(
-                  fontSize: 14,
-                  color: AppColor.abutua,
-                  height: 1.5,
-                ),
-              ),
-            ],
+        title: Text(
+          'Pesan',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: AppColor.pinktua,
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ChatList extends StatelessWidget {
-  final List<Map<String, dynamic>> chatRooms;
-
-  const _ChatList({required this.chatRooms});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: chatRooms.length,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemBuilder: (context, index) {
-        final chat = chatRooms[index];
-        final isFemale =
-            chat["gender"] == "Akhwat" || chat["gender"] == "akhwat";
-
-        final avatarPath = isFemale
-            ? "assets/images/avatar_akhwat.png"
-            : "assets/images/avatar_ikhwan.png";
-
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-            border: Border.all(color: Colors.pink.shade50),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 6,
-            ),
-            leading: CircleAvatar(
-              radius: 26,
-              backgroundColor: const Color(0xffFFF4F8),
-              backgroundImage: AssetImage(avatarPath),
-            ),
-            title: Text(
-              chat["name"] ?? "",
-              style: GoogleFonts.montserrat(
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-                color: AppColor.hitam,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _daftarChat.isEmpty
+          ? _buildEmptyState()
+          : RefreshIndicator(
+              onRefresh: _loadChat,
+              child: ListView.builder(
+                itemCount: _daftarChat.length,
+                itemBuilder: (context, index) {
+                  return _buildChatItem(_daftarChat[index]);
+                },
               ),
             ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                chat["lastMessage"] ?? "Belum ada pesan",
-                style: GoogleFonts.montserrat(
-                  fontSize: 13,
-                  color: AppColor.abutua,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            trailing: Text(
-              chat["time"] ?? "",
-              style: GoogleFonts.montserrat(
-                fontSize: 11,
-                color: AppColor.abutua,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            onTap: () {},
-          ),
-        );
-      },
     );
   }
 }

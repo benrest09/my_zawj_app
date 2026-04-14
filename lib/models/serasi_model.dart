@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 class SerasiModel {
   final int userId;
   final String namaLengkap;
@@ -26,29 +25,33 @@ class SerasiModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'userId': userId,
-      'namaLengkap': namaLengkap,
-      'jenisKelamin': jenisKelamin,
+      'user_id': userId,
+      'nama_lengkap': namaLengkap,
+      'jenis_kelamin': jenisKelamin,
       'usia': usia,
       'domisili': domisili,
       'pendidikan': pendidikan,
       'pekerjaan': pekerjaan,
-      'tentangSaya': tentangSaya,
-      'fotoProfil': fotoProfil,
+      'tentang_saya': tentangSaya,
+      'foto_profil': fotoProfil,
     };
   }
 
   factory SerasiModel.fromMap(Map<String, dynamic> map) {
     return SerasiModel(
-      userId: map['userId'] as int,
-      namaLengkap: map['namaLengkap'] as String,
-      jenisKelamin: map['jenisKelamin'] as String,
-      usia: map['usia'] as int,
-      domisili: map['domisili'] as String,
-      pendidikan: map['pendidikan'] as String,
-      pekerjaan: map['pekerjaan'] as String,
-      tentangSaya: map['tentangSaya'] as String,
-      fotoProfil: map['fotoProfil'] as String,
+      userId: map['user_id'] is int
+          ? map['user_id'] as int
+          : int.tryParse(map['user_id'].toString()) ?? 0,
+      namaLengkap: map['nama_lengkap']?.toString() ?? '-',
+      jenisKelamin: map['jenis_kelamin']?.toString() ?? '-',
+      usia: map['usia'] is int
+          ? map['usia'] as int
+          : int.tryParse(map['usia']?.toString() ?? '0') ?? 0,
+      domisili: map['domisili']?.toString() ?? '-',
+      pendidikan: map['pendidikan']?.toString() ?? '-',
+      pekerjaan: map['pekerjaan']?.toString() ?? '-',
+      tentangSaya: map['tentang_saya']?.toString() ?? '-',
+      fotoProfil: map['foto_profil']?.toString(),
     );
   }
 

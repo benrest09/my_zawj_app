@@ -131,7 +131,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                   GestureDetector(
                     onTap: () {
                       setState(() {
-                        _fotoProfilPath = 'assets/images/avatar_akhwat.png';
+                        _fotoProfilPath = 'assets/images/akhwat.png';
                       });
                       Navigator.pop(context);
                     },
@@ -140,7 +140,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                         CircleAvatar(
                           radius: 40,
                           backgroundImage: AssetImage(
-                            'assets/images/avatar_akhwat.png',
+                            'assets/images/akhwat.png',
                           ),
                         ),
                         SizedBox(height: 8),
@@ -650,7 +650,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                       ),
                       const SizedBox(height: 10),
                       DropdownButtonFormField<String>(
-                        value: _jenisKelamin,
+                        initialValue: _jenisKelamin,
                         items: ['Ikhwan', 'Akhwat'].map((String value) {
                           return DropdownMenuItem<String>(
                             value: value,
@@ -796,7 +796,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                       ),
                       const SizedBox(height: 10),
                       DropdownButtonFormField<String>(
-                        value: _pendidikan,
+                        initialValue: _pendidikan,
                         items: ['SD', 'SMP', 'SMA', 'S1', 'S2', 'S3'].map((
                           value,
                         ) {
@@ -895,7 +895,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                       ),
                       const SizedBox(height: 10),
                       DropdownButtonFormField<String>(
-                        value: _targetNikah,
+                        initialValue: _targetNikah,
                         items:
                             [
                               '< 6 bulan',
@@ -1083,7 +1083,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                         decoration: customTextField(
                           hintText: "Status Pernikahan",
                         ),
-                        value: _statusNikah,
+                        initialValue: _statusNikah,
                         items:
                             [
                               'Belum menikah',
@@ -1182,7 +1182,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                         decoration: customTextField(
                           hintText: "Apakah bersedia poligami?",
                         ),
-                        value: _mauPoligami,
+                        initialValue: _mauPoligami,
                         items:
                             [
                               'Ya, saya bersedia',
@@ -1250,7 +1250,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                         decoration: customTextField(
                           hintText: "Rutinitas Sholat",
                         ),
-                        value: _sholat,
+                        initialValue: _sholat,
                         items:
                             [
                               'Selalu tepat waktu',
@@ -1298,7 +1298,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                         decoration: customTextField(
                           hintText: "Hafalan Al-Qur'an",
                         ),
-                        value: _hafalanQuran,
+                        initialValue: _hafalanQuran,
                         items:
                             [
                               'Juz 30',
@@ -1381,7 +1381,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                       const SizedBox(height: 10),
                       DropdownButtonFormField<String>(
                         decoration: customTextField(hintText: "Panjang hijab"),
-                        value: _panjangHijab,
+                        initialValue: _panjangHijab,
                         items:
                             [
                               'Tidak Berhijab',

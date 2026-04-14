@@ -30,7 +30,7 @@ class LengkapiProfilController {
     }
 
     if ((statusNikah == 'Cerai Hidup' || statusNikah == 'Cerai Mati') &&
-        akteCeraiPath == null) {
+        (akteCeraiPath == null || akteCeraiPath.trim().isEmpty)) {
       return statusNikah == 'Cerai Hidup'
           ? 'Akte cerai wajib diupload'
           : 'Akte kematian wajib diupload';
@@ -44,18 +44,21 @@ class LengkapiProfilController {
     required Map<String, dynamic> dataProfil,
   }) async {
     final profilLama = await DBHelper.getProfileByUserId(userId);
+    final now = DateTime.now().toIso8601String();
+
+    final dataSiapSimpan = {
+      ...dataProfil,
+      'user_id': userId,
+      'jenis_kelamin': DBHelper.normalisasiJenisKelamin(
+        dataProfil['jenis_kelamin']?.toString() ?? '',
+      ),
+      'updated_at': now,
+    };
 
     if (profilLama == null) {
-      await DBHelper.createProfile({
-        ...dataProfil,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      });
+      await DBHelper.createProfile({...dataSiapSimpan, 'created_at': now});
     } else {
-      await DBHelper.updateProfile(userId, {
-        ...dataProfil,
-        'updated_at': DateTime.now().toIso8601String(),
-      });
+      await DBHelper.updateProfile(userId, dataSiapSimpan);
     }
   }
 }

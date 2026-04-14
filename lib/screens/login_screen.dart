@@ -5,6 +5,7 @@ import 'package:zawj_app/controllers/auth_controller.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/screens/navbar.dart';
 import 'package:zawj_app/screens/register_screen.dart';
+import 'package:zawj_app/screens/ustadz_chat_screen.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 import 'package:zawj_app/widgets/custom_button.dart';
 import 'package:zawj_app/widgets/custom_textfield.dart';
@@ -32,7 +33,17 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _showSnackBar(String pesan) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(pesan), behavior: SnackBarBehavior.floating),
+      );
+  }
+
   Future<void> _handleLogin() async {
+    if (_isLoading) return;
+
     setState(() {
       _isLoading = true;
     });
@@ -42,22 +53,33 @@ class _LoginScreenState extends State<LoginScreen> {
       password: _passwordController.text,
     );
 
+    if (!mounted) return;
+
     setState(() {
       _isLoading = false;
     });
 
+    if (!result.success) {
+      _showSnackBar(result.message ?? 'Login gagal');
+      return;
+    }
+
+    final user = result.user;
+    if (user == null) {
+      _showSnackBar('Data user tidak ditemukan');
+      return;
+    }
+
+    _showSnackBar('Login berhasil');
+
+    await Future.delayed(const Duration(milliseconds: 600));
+
     if (!mounted) return;
 
-    if (result == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Login berhasil')));
-
-      context.pushAndRemoveAll(Navbar());
+    if (user.role == 'ustadz') {
+      context.pushAndRemoveAll(const UstadzChatScreen());
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result)));
+      context.pushAndRemoveAll(Navbar());
     }
   }
 
@@ -115,7 +137,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-
                   TextFormField(
                     controller: _emailController,
                     decoration: customTextField(
@@ -123,7 +144,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ).copyWith(prefixIcon: const Icon(Icons.email_outlined)),
                   ),
                   const SizedBox(height: 16),
-
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _isPasswordHidden,
@@ -143,9 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -156,9 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
                   _isLoading
                       ? const CircularProgressIndicator()
                       : customButton(
@@ -166,9 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           onPressed: _handleLogin,
                         ),
-
                   const SizedBox(height: 30),
-
                   Text(
                     "Atau lanjutkan dengan",
                     style: GoogleFonts.montaga(
@@ -177,7 +191,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -260,9 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 30),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
