@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "918249106970",
+    "project_id": "find-my-zawj",
+    "storage_bucket": "find-my-zawj.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:918249106970:android:aa9100dd19eb0682eceba3",
+        "android_client_info": {
+          "package_name": "com.ning.my_zawj_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCVYNnppqGnF7-jX4K-7jkYNxP6XxsZWg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
