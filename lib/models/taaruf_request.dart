@@ -1,17 +1,18 @@
-import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 class TaarufRequestModel {
-  int? id;
-  int pengajuId;
-  int targetId;
+  String id;
+  String pengajuId;
+  String targetId;
+
   String status;
   String? pesanPengajuan;
-  String? createdAt;
-  String? updatedAt;
+
+  Timestamp? createdAt;
+  Timestamp? updatedAt;
 
   TaarufRequestModel({
-    this.id,
+    required this.id,
     required this.pengajuId,
     required this.targetId,
     required this.status,
@@ -21,33 +22,25 @@ class TaarufRequestModel {
   });
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
+    return {
       'pengajuId': pengajuId,
       'targetId': targetId,
       'status': status,
       'pesanPengajuan': pesanPengajuan,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 
-  factory TaarufRequestModel.fromMap(Map<String, dynamic> map) {
+  factory TaarufRequestModel.fromMap(String id, Map<String, dynamic> map) {
     return TaarufRequestModel(
-      id: map['id'] != null ? map['id'] as int : null,
-      pengajuId: map['pengajuId'] as int,
-      targetId: map['targetId'] as int,
-      status: map['status'] as String,
-      pesanPengajuan: map['pesanPengajuan'] != null
-          ? map['pesanPengajuan'] as String
-          : null,
-      createdAt: map['createdAt'] != null ? map['createdAt'] as String : null,
-      updatedAt: map['updatedAt'] != null ? map['updatedAt'] as String : null,
+      id: id,
+      pengajuId: map['pengajuId'] ?? '',
+      targetId: map['targetId'] ?? '',
+      status: map['status'] ?? 'pending',
+      pesanPengajuan: map['pesanPengajuan'],
+      createdAt: map['createdAt'],
+      updatedAt: map['updatedAt'],
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory TaarufRequestModel.fromJson(String source) =>
-      TaarufRequestModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }

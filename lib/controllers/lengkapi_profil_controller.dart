@@ -1,8 +1,16 @@
-import 'package:zawj_app/database/sqflite.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LengkapiProfilController {
-  Future<Map<String, dynamic>?> loadProfil(int userId) async {
-    return await DBHelper.getProfileByUserId(userId);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<Map<String, dynamic>?> loadProfil(String uid) async {
+    final doc = await _firestore.collection('profiles').doc(uid).get();
+
+    if (doc.exists) {
+      return doc.data();
+    } else {
+      return null;
+    }
   }
 
   String? validasiProfil({
@@ -40,25 +48,24 @@ class LengkapiProfilController {
   }
 
   Future<void> simpanProfil({
-    required int userId,
+    required String uid,
     required Map<String, dynamic> dataProfil,
   }) async {
-    final profilLama = await DBHelper.getProfileByUserId(userId);
-    final now = DateTime.now().toIso8601String();
+    final now = FieldValue.serverTimestamp();
 
-    final dataSiapSimpan = {
-      ...dataProfil,
-      'user_id': userId,
-      'jenis_kelamin': DBHelper.normalisasiJenisKelamin(
-        dataProfil['jenis_kelamin']?.toString() ?? '',
-      ),
-      'updated_at': now,
-    };
+    final dataSiapSimpan = {...dataProfil, 'uid': uid, 'updatedAt': now};
 
-    if (profilLama == null) {
-      await DBHelper.createProfile({...dataSiapSimpan, 'created_at': now});
+    final docRef = _firestore.collection('profiles').doc(uid);
+    final doc = await docRef.get();
+
+    if (!doc.exists) {
+      await docRef.set({
+        ...dataSiapSimpan,
+        'createdAt': now,
+        'isProfileComplete': true,
+      });
     } else {
-      await DBHelper.updateProfile(userId, dataSiapSimpan);
+      await docRef.update(dataSiapSimpan);
     }
   }
 }

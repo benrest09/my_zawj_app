@@ -4,10 +4,10 @@ import 'package:zawj_app/models/user_model_firebase.dart';
 
 class FirebaseService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
-  static final FirebaseFirestore _firebaseFirestore =
-      FirebaseFirestore.instance;
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  static Future<UserModelFirebase?> registerUser({
+  /// REGISTER
+  static Future<(UserModelFirebase?, String?)> registerUser({
     required String email,
     required String password,
     required String username,
@@ -19,8 +19,7 @@ class FirebaseService {
       );
 
       final user = cred.user;
-
-      if (user == null) return null;
+      if (user == null) return (null, 'User gagal dibuat');
 
       final userModel = UserModelFirebase(
         id: user.uid,
@@ -28,22 +27,23 @@ class FirebaseService {
         email: email,
       );
 
-      await _firebaseFirestore
-          .collection('users')
-          .doc(user.uid)
-          .set(userModel.toMap());
+      await _firestore.collection('users').doc(user.uid).set(userModel.toMap());
 
-      return userModel;
+      return (userModel, null);
     } on FirebaseAuthException catch (e) {
-      print('Register Error: ${e.message}');
-      return null;
+      if (e.code == 'email-already-in-use') {
+        return (null, 'Email sudah terdaftar');
+      } else if (e.code == 'weak-password') {
+        return (null, 'Password terlalu lemah');
+      }
+      return (null, e.message);
     } catch (e) {
-      print('Register Error: $e');
-      return null;
+      return (null, 'Terjadi kesalahan');
     }
   }
 
-  static Future<UserModelFirebase?> loginUser({
+  /// LOGIN
+  static Future<(UserModelFirebase?, String?)> loginUser({
     required String email,
     required String password,
   }) async {
@@ -54,39 +54,36 @@ class FirebaseService {
       );
 
       final user = cred.user;
+      if (user == null) return (null, 'User tidak ditemukan');
 
-      if (user == null) return null;
+      final doc = await _firestore.collection('users').doc(user.uid).get();
 
-      final doc = await _firebaseFirestore
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      if (!doc.exists) return (null, 'Data user tidak ditemukan');
 
-      if (!doc.exists) return null;
-
-      return UserModelFirebase.fromMap(doc.data()!, doc.id);
+      return (UserModelFirebase.fromMap(doc.data()!, doc.id), null);
     } on FirebaseAuthException catch (e) {
-      print('Login Error: ${e.message}');
-      return null;
+      if (e.code == 'user-not-found') {
+        return (null, 'Email tidak terdaftar');
+      } else if (e.code == 'wrong-password') {
+        return (null, 'Password salah');
+      }
+      return (null, e.message);
     } catch (e) {
-      print('Login Error: $e');
-      return null;
+      return (null, 'Terjadi kesalahan');
     }
   }
 
+  /// LOGOUT
   static Future<void> logout() async {
     await _auth.signOut();
   }
 
+  /// GET CURRENT USER
   static Future<UserModelFirebase?> getCurrentUser() async {
     final user = _auth.currentUser;
-
     if (user == null) return null;
 
-    final doc = await _firebaseFirestore
-        .collection('users')
-        .doc(user.uid)
-        .get();
+    final doc = await _firestore.collection('users').doc(user.uid).get();
 
     if (!doc.exists) return null;
 

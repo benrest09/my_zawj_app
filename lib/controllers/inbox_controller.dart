@@ -1,32 +1,74 @@
-import 'package:flutter/foundation.dart';
-import 'package:zawj_app/database/sqflite.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zawj_app/models/inbox_model.dart';
 
 class InboxController {
-  Future<List<InboxModel>> getInboxTaaruf(int userId) async {
-    final result = await DBHelper.getInboxTaarufDetail(userId);
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-    for (final item in result) {
-      debugPrint('INBOX RAW DATA: $item');
+  Future<List<InboxModel>> getInboxTaaruf() async {
+    final user = _auth.currentUser;
+    if (user == null) return [];
+
+    final query = await _firestore
+        .collection('taaruf_requests')
+        .where('targetId', isEqualTo: user.uid)
+        .get();
+
+    return query.docs
+        .map((doc) => InboxModel.fromMap(doc.id, doc.data()))
+        .toList();
+  }
+
+  Future<String?> terimaTaaruf(String requestId) async {
+    try {
+      await _firestore.collection('taaruf_requests').doc(requestId).update({
+        'status': 'accepted',
+      });
+
+      final requestDoc = await _firestore
+          .collection('taaruf_requests')
+          .doc(requestId)
+          .get();
+      final data = requestDoc.data();
+
+      await _firestore.collection('chat_rooms').add({
+        'members': [data?['pengajuId'], data?['target_id']],
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return null;
+    } catch (e) {
+      return 'Gagal menerima taaruf';
     }
-
-    return result.map((e) => InboxModel.fromMap(e)).toList();
   }
 
-  Future<String?> terimaTaaruf(int requestId) async {
-    return await DBHelper.terimaTaarufRequest(requestId: requestId);
+  Future<void> tolakTaaruf(String requestId) async {
+    await _firestore.collection('taaruf_request').doc(requestId).update({
+      'status': 'rejected',
+    });
   }
 
-  Future<void> tolakTaaruf(int requestId) async {
-    await DBHelper.tolakTaarufRequest(requestId: requestId);
+  Future<bool> hapusInbox(String requestId) async {
+    try {
+      await _firestore.collection('taaruf_requests').doc(requestId).delete();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
-  Future<bool> hapusInbox(int requestId) async {
-    final result = await DBHelper.hapusInboxRequest(requestId: requestId);
-    return result > 0;
-  }
+  Future<Map<String, dynamic>?> getRuangChatByRequestId(
+    String requestId,
+  ) async {
+    final query = await _firestore
+        .collection('chat_rooms')
+        .where('requestId', isEqualTo: requestId)
+        .limit(1)
+        .get();
 
-  Future<Map<String, dynamic>?> getRuangChatByRequestId(int requestId) async {
-    return await DBHelper.getRuangChatByRequestId(requestId);
+    if (query.docs.isEmpty) return null;
+
+    return query.docs.first.data();
   }
 }

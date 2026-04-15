@@ -1,12 +1,10 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 class ProfileModel {
-  int? id;
-  int userId;
+  String uid;
 
   String? fotoProfil;
-
   String? namaLengkap;
   String? jenisKelamin;
 
@@ -53,12 +51,11 @@ class ProfileModel {
 
   bool isProfileComplete;
 
-  String? createdAt;
-  String? updatedAt;
+  Timestamp? createdAt;
+  Timestamp? updatedAt;
 
   ProfileModel({
-    this.id,
-    required this.userId,
+    required this.uid,
     this.fotoProfil,
     this.namaLengkap,
     this.jenisKelamin,
@@ -73,33 +70,32 @@ class ProfileModel {
     this.bidangPekerjaan,
     this.penghasilan,
     this.targetNikah,
-    required this.waliTahu,
-    required this.bersediaPindah,
+    this.waliTahu = false,
+    this.bersediaPindah = false,
     this.tentangSaya,
     this.statusNikah,
-    required this.punyaAnak,
-    required this.jumlahAnak,
+    this.punyaAnak = false,
+    this.jumlahAnak = 0,
     this.mauPoligami,
     this.sholat,
     this.kajianRutin,
     this.hafalanQuran,
-    required this.bercadar,
+    this.bercadar = false,
     this.panjangHijab,
     this.fotoKtp,
     this.akteCerai,
     this.buktiSedekah,
-    required this.setujuTidakKomunikasiDiluarSistem,
-    required this.setujuSatuTaarufSatuWaktu,
-    required this.setujuKebijakanPrivasi,
-    required this.isProfileComplete,
+    this.setujuTidakKomunikasiDiluarSistem = false,
+    this.setujuSatuTaarufSatuWaktu = false,
+    this.setujuKebijakanPrivasi = false,
+    this.isProfileComplete = false,
     this.createdAt,
     this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
-      'userId': userId,
+    return {
+      'uid': uid,
       'fotoProfil': fotoProfil,
       'namaLengkap': namaLengkap,
       'jenisKelamin': jenisKelamin,
@@ -133,90 +129,55 @@ class ProfileModel {
       'setujuSatuTaarufSatuWaktu': setujuSatuTaarufSatuWaktu,
       'setujuKebijakanPrivasi': setujuKebijakanPrivasi,
       'isProfileComplete': isProfileComplete,
-      'createdAt': createdAt,
-      'updatedAt': updatedAt,
+      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 
   factory ProfileModel.fromMap(Map<String, dynamic> map) {
     return ProfileModel(
-      id: map['id'] != null ? map['id'] as int : null,
-      userId: map['userId'] as int,
-      fotoProfil: map['fotoProfil'] != null
-          ? map['fotoProfil'] as String
-          : null,
-      namaLengkap: map['namaLengkap'] != null
-          ? map['namaLengkap'] as String
-          : null,
-      jenisKelamin: map['jenisKelamin'] != null
-          ? map['jenisKelamin'] as String
-          : null,
-      tanggalLahir: map['tanggalLahir'] != null
-          ? map['tanggalLahir'] as String
-          : null,
-      usia: map['usia'] != null ? map['usia'] as int : null,
-      tempatLahir: map['tempatLahir'] != null
-          ? map['tempatLahir'] as String
-          : null,
-      domisili: map['domisili'] != null ? map['domisili'] as String : null,
-      suku: map['suku'] != null ? map['suku'] as String : null,
-      kewarganegaraan: map['kewarganegaraan'] != null
-          ? map['kewarganegaraan'] as String
-          : null,
-      pendidikan: map['pendidikan'] != null
-          ? map['pendidikan'] as String
-          : null,
-      pekerjaan: map['pekerjaan'] != null ? map['pekerjaan'] as String : null,
-      bidangPekerjaan: map['bidangPekerjaan'] != null
-          ? map['bidangPekerjaan'] as String
-          : null,
-      penghasilan: map['penghasilan'] != null
-          ? map['penghasilan'] as String
-          : null,
-      targetNikah: map['targetNikah'] != null
-          ? map['targetNikah'] as String
-          : null,
-      waliTahu: map['waliTahu'] as bool,
-      bersediaPindah: map['bersediaPindah'] as bool,
-      tentangSaya: map['tentangSaya'] != null
-          ? map['tentangSaya'] as String
-          : null,
-      statusNikah: map['statusNikah'] != null
-          ? map['statusNikah'] as String
-          : null,
-      punyaAnak: map['punyaAnak'] as bool,
-      jumlahAnak: map['jumlahAnak'] as int,
-      mauPoligami: map['mauPoligami'] != null
-          ? map['mauPoligami'] as String
-          : null,
-      sholat: map['sholat'] != null ? map['sholat'] as String : null,
-      kajianRutin: map['kajianRutin'] != null
-          ? map['kajianRutin'] as String
-          : null,
-      hafalanQuran: map['hafalanQuran'] != null
-          ? map['hafalanQuran'] as String
-          : null,
-      bercadar: map['bercadar'] as bool,
-      panjangHijab: map['panjangHijab'] != null
-          ? map['panjangHijab'] as String
-          : null,
-      fotoKtp: map['fotoKtp'] != null ? map['fotoKtp'] as String : null,
-      akteCerai: map['akteCerai'] != null ? map['akteCerai'] as String : null,
-      buktiSedekah: map['buktiSedekah'] != null
-          ? map['buktiSedekah'] as String
-          : null,
+      uid: map['uid'] ?? '',
+      fotoProfil: map['fotoProfil'],
+      namaLengkap: map['namaLengkap'],
+      jenisKelamin: map['jenisKelamin'],
+      tanggalLahir: map['tanggalLahir'],
+      usia: map['usia'],
+      tempatLahir: map['tempatLahir'],
+      domisili: map['domisili'],
+      suku: map['suku'],
+      kewarganegaraan: map['kewarganegaraan'],
+      pendidikan: map['pendidikan'],
+      pekerjaan: map['pekerjaan'],
+      bidangPekerjaan: map['bidangPekerjaan'],
+      penghasilan: map['penghasilan'],
+      targetNikah: map['targetNikah'],
+      waliTahu: map['waliTahu'] ?? false,
+      bersediaPindah: map['bersediaPindah'] ?? false,
+      tentangSaya: map['tentangSaya'],
+      statusNikah: map['statusNikah'],
+      punyaAnak: map['punyaAnak'] ?? false,
+      jumlahAnak: map['jumlahAnak'] ?? 0,
+      mauPoligami: map['mauPoligami'],
+      sholat: map['sholat'],
+      kajianRutin: map['kajianRutin'],
+      hafalanQuran: map['hafalanQuran'],
+      bercadar: map['bercadar'] ?? false,
+      panjangHijab: map['panjangHijab'],
+      fotoKtp: map['fotoKtp'],
+      akteCerai: map['akteCerai'],
+      buktiSedekah: map['buktiSedekah'],
       setujuTidakKomunikasiDiluarSistem:
-          map['setujuTidakKomunikasiDiluarSistem'] as bool,
-      setujuSatuTaarufSatuWaktu: map['setujuSatuTaarufSatuWaktu'] as bool,
-      setujuKebijakanPrivasi: map['setujuKebijakanPrivasi'] as bool,
-      isProfileComplete: map['isProfileComplete'] as bool,
-      createdAt: map['createdAt'] != null ? map['createdAt'] as String : null,
-      updatedAt: map['updatedAt'] != null ? map['updatedAt'] as String : null,
+          map['setujuTidakKomunikasiDiluarSistem'] ?? false,
+      setujuSatuTaarufSatuWaktu: map['setujuSatuTaarufSatuWaktu'] ?? false,
+      setujuKebijakanPrivasi: map['setujuKebijakanPrivasi'] ?? false,
+      isProfileComplete: map['isProfileComplete'] ?? false,
+      createdAt: map['createdAt'],
+      updatedAt: map['updatedAt'],
     );
   }
 
   String toJson() => json.encode(toMap());
 
   factory ProfileModel.fromJson(String source) =>
-      ProfileModel.fromMap(json.decode(source) as Map<String, dynamic>);
+      ProfileModel.fromMap(json.decode(source));
 }

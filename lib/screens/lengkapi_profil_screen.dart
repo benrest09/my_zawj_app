@@ -397,10 +397,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
     };
 
     try {
-      await _profilController.simpanProfil(
-        userId: userId,
-        dataProfil: dataProfil,
-      );
+      await _profilController.simpanProfil(dataProfil: dataProfil, uid: '');
 
       if (!mounted) return;
 

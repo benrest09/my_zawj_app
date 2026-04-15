@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zawj_app/screens/login_screen.dart';
 import 'package:zawj_app/screens/register_screen.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 import 'package:zawj_app/widgets/custom_button.dart';
 import 'package:zawj_app/widgets/onboarding_indicator.dart';
@@ -136,7 +136,8 @@ class _OnboardingScreen3State extends State<OnboardingScreen3> {
                             ),
                           ),
                           onPressed: () async {
-                            await PreferenceHandler.sudahLewatOnboarding();
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setBool('onboarding', true);
                             if (!context.mounted) return;
                             Navigator.push(
                               context,

@@ -1,11 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zawj_app/database/sqflite.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/screens/lengkapi_profil_screen.dart';
 import 'package:zawj_app/screens/login_screen.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 import 'package:zawj_app/widgets/custom_button.dart';
 
@@ -27,9 +27,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    final userId = await PreferenceHandler.getUserId();
+    final user = FirebaseAuth.instance.currentUser;
 
-    if (userId == null) {
+    if (user == null) {
       setState(() {
         _isLoading = false;
         _profileData = null;
@@ -37,7 +37,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
-    final profile = await DBHelper.getProfileByUserId(userId);
+    final doc = await FirebaseFirestore.instance
+        .collection('profiles')
+        .doc(user.uid)
+        .get();
+
+    final profile = doc.data();
 
     setState(() {
       _profileData = profile;
