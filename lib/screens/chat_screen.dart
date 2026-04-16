@@ -1,9 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:zawj_app/database/sqflite.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/screens/chat_group_screen.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -29,9 +29,9 @@ class _ChatScreenState extends State<ChatScreen> {
       _isLoading = true;
     });
 
-    final userId = await PreferenceHandler.getUserId();
-    if (userId == null) {
-      if (!mounted) return;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
       setState(() {
         _daftarChat = [];
         _isLoading = false;
@@ -39,8 +39,19 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    final hasil = await DBHelper.getDaftarChatUser(userId);
-    if (!mounted) return;
+    final query = await FirebaseFirestore.instance
+        .collection('chat_rooms')
+        .where('members', arrayContains: user.uid)
+        .get();
+
+    final hasil = query.docs.map((doc) {
+      final data = doc.data();
+      return {
+        'ruang_chat_id': doc.id,
+        'nama_lawan_bicara': data['nama'] ?? 'User',
+      };
+    }).toList();
+
     setState(() {
       _daftarChat = hasil;
       _isLoading = false;
@@ -97,7 +108,7 @@ class _ChatScreenState extends State<ChatScreen> {
         onTap: () {
           context.push(
             GroupChatScreen(
-              ruangChatId: chat['ruang_chat_id'] as int,
+              ruangChatId: chat['ruang_chat_id'] as String,
               namaLawanBicara: nama,
             ),
           );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zawj_app/controllers/serasi_controller.dart';
-import 'package:zawj_app/database/sqflite.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/models/serasi_model.dart';
 import 'package:zawj_app/screens/detail_serasi_screen.dart';
@@ -35,7 +34,7 @@ class _SerasiScreenState extends State<SerasiScreen> {
     });
 
     try {
-      final int? idPengguna = await PreferenceHandler.getUserId();
+      final String? idPengguna = await PreferenceHandler.getUserId();
 
       if (idPengguna == null) {
         if (!mounted) return;
@@ -46,10 +45,10 @@ class _SerasiScreenState extends State<SerasiScreen> {
         return;
       }
 
-      final Map<String, dynamic>? profilSaya =
-          await DBHelper.getProfileByUserId(idPengguna);
+      final Map<String, dynamic>? profilSaya = await _controller
+          .getProfileByUserId(idPengguna);
 
-      final String jenisKelaminSaya = DBHelper.normalisasiJenisKelamin(
+      final String jenisKelaminSaya = _controller.normalisasiJenisKelamin(
         profilSaya?['jenis_kelamin']?.toString() ?? '',
       );
 
@@ -63,7 +62,6 @@ class _SerasiScreenState extends State<SerasiScreen> {
       }
 
       final List<SerasiModel> profiles = await _controller.getSerasiProfiles(
-        currentUserId: idPengguna,
         currentGender: jenisKelaminSaya,
       );
 
@@ -119,7 +117,7 @@ class _SerasiScreenState extends State<SerasiScreen> {
         profile.fotoProfil == null || profile.fotoProfil!.trim().isEmpty;
 
     final String avatarPath = pakaiAsset
-        ? (profile.jenisKelamin == DBHelper.genderAkhwat
+        ? (profile.jenisKelamin == 'Akhwat'
               ? 'assets/images/akhwat.png'
               : 'assets/images/ikhwan.png')
         : profile.fotoProfil!;

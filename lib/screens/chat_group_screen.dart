@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zawj_app/controllers/chat_controller.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 
 class GroupChatScreen extends StatefulWidget {
-  final int ruangChatId;
+  final String ruangChatId;
   final String namaLawanBicara;
 
-  GroupChatScreen({
+  const GroupChatScreen({
     super.key,
     required this.ruangChatId,
     required this.namaLawanBicara,
@@ -22,59 +22,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final TextEditingController _pesanController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  List<Map<String, dynamic>> _pesanList = [];
-  bool _isLoading = true;
-  int? _userId;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPesan();
-  }
-
-  @override
-  void dispose() {
-    _pesanController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadPesan() async {
-    final userId = await PreferenceHandler.getUserId();
-    final hasil = await _chatController.getPesanChat(widget.ruangChatId);
-
-    if (!mounted) return;
-    setState(() {
-      _userId = userId;
-      _pesanList = hasil;
-      _isLoading = false;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      }
-    });
-  }
-
   Future<void> _kirimPesan() async {
-    if (_userId == null) return;
     if (_pesanController.text.trim().isEmpty) return;
 
     await _chatController.kirimPesan(
       ruangChatId: widget.ruangChatId,
-      senderId: _userId!,
       pesan: _pesanController.text,
     );
 
     _pesanController.clear();
-    await _loadPesan();
   }
 
   Widget _buildBubble(Map<String, dynamic> pesan) {
-    final senderId = pesan['sender_id'] as int;
-    final isiPesan = pesan['pesan']?.toString() ?? '';
-    final isMe = senderId == _userId;
+    final senderId = pesan['senderId'] ?? '';
+    final isiPesan = pesan['pesan'] ?? '';
+    final isMe = senderId == FirebaseAuth.instance.currentUser?.uid;
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -93,8 +55,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Widget _buildInputArea() {
     return SafeArea(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-        color: Colors.white,
+        padding: const EdgeInsets.all(12),
         child: Row(
           children: [
             Expanded(
@@ -105,20 +66,10 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            CircleAvatar(
-              child: IconButton(
-                onPressed: _kirimPesan,
-                icon: const Icon(Icons.send),
-              ),
-            ),
+            IconButton(onPressed: _kirimPesan, icon: const Icon(Icons.send)),
           ],
         ),
       ),
@@ -126,26 +77,38 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   @override
+  void dispose() {
+    _pesanController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.namaLawanBicara,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-      ),
+      appBar: AppBar(title: Text(widget.namaLawanBicara)),
       body: Column(
         children: [
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    controller: _scrollController,
-                    itemCount: _pesanList.length,
-                    itemBuilder: (context, index) {
-                      return _buildBubble(_pesanList[index]);
-                    },
-                  ),
+            child: StreamBuilder(
+              stream: _chatController.streamPesanChat(widget.ruangChatId),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                final docs = snapshot.data!.docs;
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    return _buildBubble(data);
+                  },
+                );
+              },
+            ),
           ),
           _buildInputArea(),
         ],

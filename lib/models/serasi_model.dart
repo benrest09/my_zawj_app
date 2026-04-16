@@ -26,7 +26,7 @@ class SerasiModel {
     return SerasiModel(
       uid: map['uid'] ?? '',
       namaLengkap: map['namaLengkap'] ?? '-',
-      jenisKelamin: map['jenisKelamin'] ?? '-',
+      jenisKelamin: map['jenis_kelamin'] ?? '-',
       usia: map['usia'] ?? 0,
       domisili: map['domisili'] ?? '-',
       pendidikan: map['pendidikan'] ?? '-',

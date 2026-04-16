@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:zawj_app/models/serasi_model.dart';
+import '../models/serasi_model.dart';
 
 class SerasiController {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
 
-  /// Ambil profil serasi
   Future<List<SerasiModel>> getSerasiProfiles({
     required String currentGender,
   }) async {
@@ -20,18 +19,22 @@ class SerasiController {
 
     return query.docs
         .where((doc) => doc.id != user.uid)
-        .map((e) => SerasiModel.fromMap(e.data()))
+        .map(
+          (doc) => SerasiModel.fromMap({
+            ...doc.data(),
+            'uid': doc.id, // 🔥 INI PENTING
+          }),
+        )
         .toList();
   }
 
-  /// Validasi sebelum taaruf
-  Future<String?> validateAjukanTaaruf({required String targetId}) async {
-    final user = _auth.currentUser;
-    if (user == null) return 'User belum login';
-
+  Future<String?> validateAjukanTaaruf({
+    required String pengajuId,
+    required String targetId,
+  }) async {
     final query = await _firestore
         .collection('taaruf_requests')
-        .where('pengajuId', isEqualTo: user.uid)
+        .where('pengajuId', isEqualTo: pengajuId)
         .where('targetId', isEqualTo: targetId)
         .where('status', isEqualTo: 'pending')
         .get();
@@ -43,7 +46,6 @@ class SerasiController {
     return null;
   }
 
-  /// Kirim taaruf
   Future<String?> submitTaarufRequest({
     required String targetId,
     String? pesanPengajuan,
@@ -62,7 +64,21 @@ class SerasiController {
 
       return null;
     } catch (e) {
-      return 'Gagal mengirim taaruf';
+      return 'Gagal kirim';
     }
+  }
+
+  Future<Map<String, dynamic>?> getProfileByUserId(String uid) async {
+    final doc = await _firestore.collection('profiles').doc(uid).get();
+    return doc.data();
+  }
+
+  String normalisasiJenisKelamin(String value) {
+    final v = value.toLowerCase();
+
+    if (v.contains('akhwat')) return 'Akhwat';
+    if (v.contains('ikhwan')) return 'Ikhwan';
+
+    return '';
   }
 }

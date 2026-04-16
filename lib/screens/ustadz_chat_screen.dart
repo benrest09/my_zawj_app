@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zawj_app/controllers/chat_controller.dart';
@@ -26,9 +27,9 @@ class _UstadzChatScreenState extends State<UstadzChatScreen> {
   }
 
   Future<void> _loadChat() async {
-    final userId = await PreferenceHandler.getUserId();
+    final user = FirebaseAuth.instance.currentUser;
 
-    if (userId == null) {
+    if (user == null) {
       setState(() {
         _listChat = [];
         _isLoading = false;
@@ -36,7 +37,7 @@ class _UstadzChatScreenState extends State<UstadzChatScreen> {
       return;
     }
 
-    final result = await _chatController.getDaftarChatUser(userId);
+    final result = await _chatController.getDaftarChatUser(user.uid);
 
     if (!mounted) return;
 

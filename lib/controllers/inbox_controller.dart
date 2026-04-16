@@ -33,7 +33,8 @@ class InboxController {
       final data = requestDoc.data();
 
       await _firestore.collection('chat_rooms').add({
-        'members': [data?['pengajuId'], data?['target_id']],
+        'members': [data?['pengajuId'], data?['targetId']],
+        'requestId': requestId, // WAJIB supaya bisa dicari
         'createdAt': FieldValue.serverTimestamp(),
       });
 

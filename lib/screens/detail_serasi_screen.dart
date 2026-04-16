@@ -42,7 +42,7 @@ class _DetailSerasiScreenState extends State<DetailSerasiScreen> {
 
     final validationMessage = await _controller.validateAjukanTaaruf(
       pengajuId: userId,
-      targetId: widget.profile.userId,
+      targetId: widget.profile.uid,
     );
 
     if (validationMessage != null) {
@@ -59,8 +59,7 @@ class _DetailSerasiScreenState extends State<DetailSerasiScreen> {
 
     try {
       await _controller.submitTaarufRequest(
-        pengajuId: userId,
-        targetId: widget.profile.userId,
+        targetId: widget.profile.uid.toString(),
         pesanPengajuan: _messageController.text.trim(),
       );
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zawj_app/controllers/inbox_controller.dart';
-import 'package:zawj_app/database/sqflite.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/models/inbox_model.dart';
 import 'package:zawj_app/screens/chat_group_screen.dart';
@@ -40,7 +39,6 @@ class _InboxScreenState extends State<InboxScreen> {
       debugPrint('INBOX USER ID: $userId');
 
       if (userId == null) {
-        if (!mounted) return;
         setState(() {
           _items = [];
           _isLoading = false;
@@ -48,9 +46,10 @@ class _InboxScreenState extends State<InboxScreen> {
         return;
       }
 
-      final result = await _controller.getInboxTaaruf(userId);
+      final result = await _controller.getInboxTaaruf();
 
       if (!mounted) return;
+
       setState(() {
         _items = result;
         _isLoading = false;
@@ -59,6 +58,7 @@ class _InboxScreenState extends State<InboxScreen> {
       debugPrint('ERROR LOAD INBOX: $e');
 
       if (!mounted) return;
+
       setState(() {
         _items = [];
         _isLoading = false;
@@ -447,7 +447,7 @@ class _InboxScreenState extends State<InboxScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    final ruangChat = await DBHelper.getRuangChatByRequestId(
+                    final ruangChat = await _controller.getRuangChatByRequestId(
                       item.id,
                     );
                     if (!mounted) return;
@@ -457,7 +457,7 @@ class _InboxScreenState extends State<InboxScreen> {
                       );
                       return;
                     }
-                    final int ruangChatId = ruangChat['id'] as int;
+                    final String ruangChatId = ruangChat['id'];
                     context.push(
                       GroupChatScreen(
                         ruangChatId: ruangChatId,
