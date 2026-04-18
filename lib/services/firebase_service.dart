@@ -25,13 +25,14 @@ class FirebaseService {
       final user = cred.user;
       if (user == null) return (null, 'User gagal dibuat');
 
-      final userModel = UserModelFirebase(
-        id: user.uid,
-        nama: username,
-        email: email,
-      );
+      await user.updateDisplayName(username.trim());
+      await user.reload();
 
-      await _firestore.collection('users').doc(user.uid).set(userModel.toMap());
+      final userModel = await _syncUserDocument(
+        uid: user.uid,
+        email: email,
+        nama: username,
+      );
 
       return (userModel, null);
     } on FirebaseAuthException catch (e) {
@@ -39,10 +40,12 @@ class FirebaseService {
         return (null, 'Email sudah terdaftar');
       } else if (e.code == 'weak-password') {
         return (null, 'Password terlalu lemah');
+      } else if (e.code == 'network-request-failed') {
+        return (null, 'Koneksi internet bermasalah, coba lagi');
       }
-      return (null, e.message);
+      return (null, e.message ?? e.code);
     } catch (e) {
-      return (null, 'Terjadi kesalahan');
+      return (null, e.toString());
     }
   }
 
@@ -62,7 +65,14 @@ class FirebaseService {
 
       final doc = await _firestore.collection('users').doc(user.uid).get();
 
-      if (!doc.exists) return (null, 'Data user tidak ditemukan');
+      if (!doc.exists) {
+        final userModel = await _syncUserDocument(
+          uid: user.uid,
+          email: user.email ?? email,
+          nama: user.displayName ?? email.split('@').first,
+        );
+        return (userModel, null);
+      }
 
       return (UserModelFirebase.fromMap(doc.data()!, doc.id), null);
     } on FirebaseAuthException catch (e) {
@@ -70,10 +80,12 @@ class FirebaseService {
         return (null, 'Email tidak terdaftar');
       } else if (e.code == 'wrong-password') {
         return (null, 'Password salah');
+      } else if (e.code == 'network-request-failed') {
+        return (null, 'Koneksi internet bermasalah, coba lagi');
       }
-      return (null, e.message);
+      return (null, e.message ?? e.code);
     } catch (e) {
-      return (null, 'Terjadi kesalahan');
+      return (null, e.toString());
     }
   }
 
@@ -87,6 +99,19 @@ class FirebaseService {
     final doc = await _firestore.collection('users').doc(uid).get();
     if (!doc.exists) return null;
     return UserModelFirebase.fromMap(doc.data()!, doc.id);
+  }
+
+  static Future<UserModelFirebase> syncCurrentUserDocument() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User belum login');
+    }
+
+    return _syncUserDocument(
+      uid: user.uid,
+      email: user.email ?? '',
+      nama: user.displayName ?? user.email?.split('@').first ?? 'User',
+    );
   }
 
   static Future<UserModelFirebase?> getRandomUstadz() async {
@@ -125,5 +150,40 @@ class FirebaseService {
       print("ERROR UPLOAD: $e");
       return null;
     }
+  }
+
+  static Future<UserModelFirebase> _syncUserDocument({
+    required String uid,
+    required String email,
+    required String nama,
+  }) async {
+    final docRef = _firestore.collection('users').doc(uid);
+    final currentDoc = await docRef.get();
+    final currentData = currentDoc.data() ?? {};
+
+    final namaFix = nama.trim().isNotEmpty
+        ? nama.trim()
+        : (currentData['nama']?.toString() ?? 'User');
+    final emailFix = email.trim().toLowerCase().isNotEmpty
+        ? email.trim().toLowerCase()
+        : (currentData['email']?.toString() ?? '');
+    final roleFix = currentData['role']?.toString().isNotEmpty == true
+        ? currentData['role'].toString()
+        : 'user';
+
+    final userModel = UserModelFirebase(
+      id: uid,
+      nama: namaFix,
+      email: emailFix,
+      role: roleFix,
+    );
+
+    await docRef.set({
+      ...userModel.toMap(),
+      'updatedAt': FieldValue.serverTimestamp(),
+      if (!currentDoc.exists) 'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    return userModel;
   }
 }

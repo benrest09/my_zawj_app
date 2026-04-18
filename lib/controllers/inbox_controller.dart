@@ -24,6 +24,17 @@ class InboxController {
   Future<String?> terimaTaaruf(String requestId) async {
     try {
       final requestRef = _firestore.collection('taaruf_requests').doc(requestId);
+      final requestDoc = await requestRef.get();
+      final data = requestDoc.data();
+      if (data == null) return 'Data taaruf tidak ditemukan';
+
+      final ruangChatData = await _buildRuangChatData(
+        requestId: requestId,
+        requestData: data,
+      );
+      if (ruangChatData == null) {
+        return 'Gagal menyiapkan group taaruf';
+      }
 
       final existingRoom = await _firestore
           .collection('chat_rooms')
@@ -32,6 +43,13 @@ class InboxController {
           .get();
 
       if (existingRoom.docs.isNotEmpty) {
+        await existingRoom.docs.first.reference.set(
+          {
+            ...ruangChatData,
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
         await requestRef.update({'status': 'accepted'});
         return null;
       }
@@ -40,71 +58,7 @@ class InboxController {
         'status': 'accepted',
       });
 
-      final requestDoc = await requestRef.get();
-      final data = requestDoc.data();
-      if (data == null) return 'Data taaruf tidak ditemukan';
-
-      final pengajuId = data['pengajuId']?.toString() ?? '';
-      final targetId = data['targetId']?.toString() ?? '';
-
-      if (pengajuId.isEmpty || targetId.isEmpty) {
-        return 'Data pengguna tidak lengkap';
-      }
-
-      final pengajuProfileDoc = await _firestore
-          .collection('profiles')
-          .doc(pengajuId)
-          .get();
-      final targetProfileDoc = await _firestore
-          .collection('profiles')
-          .doc(targetId)
-          .get();
-
-      final pengajuProfile = pengajuProfileDoc.data() ?? {};
-      final targetProfile = targetProfileDoc.data() ?? {};
-
-      final pengajuGender = (pengajuProfile['jenisKelamin'] ?? '').toString();
-      final targetGender = (targetProfile['jenisKelamin'] ?? '').toString();
-
-      final pengajuIsIkhwan = pengajuGender.toLowerCase().contains('ikhwan');
-      final targetIsIkhwan = targetGender.toLowerCase().contains('ikhwan');
-
-      final ikhwanId = pengajuIsIkhwan ? pengajuId : targetId;
-      final akhwatId = targetIsIkhwan ? pengajuId : targetId;
-      final namaIkhwan = pengajuIsIkhwan
-          ? (pengajuProfile['namaLengkap'] ?? data['namaLengkap'] ?? '-')
-          : (targetProfile['namaLengkap'] ?? '-');
-      final namaAkhwat = targetIsIkhwan
-          ? (pengajuProfile['namaLengkap'] ?? data['namaLengkap'] ?? '-')
-          : (targetProfile['namaLengkap'] ?? '-');
-
-      final ustadzUser = await FirebaseService.getRandomUstadz();
-      if (ustadzUser == null) {
-        return 'Ustadz belum tersedia';
-      }
-
-      final ustadzId = ustadzUser.id;
-      final namaUstadz = ustadzUser.nama.isNotEmpty ? ustadzUser.nama : 'Ustadz';
-
-      if (ustadzId.isEmpty) {
-        return 'Data ustadz tidak valid';
-      }
-
-      await _firestore.collection('chat_rooms').add({
-        'members': [pengajuId, targetId, ustadzId],
-        'requestId': requestId, // WAJIB supaya bisa dicari
-        'pengajuId': pengajuId,
-        'targetId': targetId,
-        'ikhwanId': ikhwanId,
-        'akhwatId': akhwatId,
-        'ustadzId': ustadzId,
-        'nama_ikhwan': namaIkhwan,
-        'nama_akhwat': namaAkhwat,
-        'nama_ustadz': namaUstadz,
-        'lastMessage': '',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      await _firestore.collection('chat_rooms').add(ruangChatData);
 
       return null;
     } catch (e) {
@@ -139,5 +93,65 @@ class InboxController {
     if (query.docs.isEmpty) return null;
 
     return {'id': query.docs.first.id, ...query.docs.first.data()};
+  }
+
+  Future<Map<String, dynamic>?> _buildRuangChatData({
+    required String requestId,
+    required Map<String, dynamic> requestData,
+  }) async {
+    final pengajuId = requestData['pengajuId']?.toString() ?? '';
+    final targetId = requestData['targetId']?.toString() ?? '';
+
+    if (pengajuId.isEmpty || targetId.isEmpty) {
+      return null;
+    }
+
+    final pengajuProfileDoc = await _firestore
+        .collection('profiles')
+        .doc(pengajuId)
+        .get();
+    final targetProfileDoc = await _firestore
+        .collection('profiles')
+        .doc(targetId)
+        .get();
+
+    final pengajuProfile = pengajuProfileDoc.data() ?? {};
+    final targetProfile = targetProfileDoc.data() ?? {};
+
+    final pengajuGender = (pengajuProfile['jenisKelamin'] ?? '').toString();
+    final targetGender = (targetProfile['jenisKelamin'] ?? '').toString();
+
+    final pengajuIsIkhwan = pengajuGender.toLowerCase().contains('ikhwan');
+    final targetIsIkhwan = targetGender.toLowerCase().contains('ikhwan');
+
+    final ikhwanId = pengajuIsIkhwan ? pengajuId : targetId;
+    final akhwatId = targetIsIkhwan ? pengajuId : targetId;
+    final namaIkhwan = pengajuIsIkhwan
+        ? (pengajuProfile['namaLengkap'] ?? requestData['namaLengkap'] ?? '-')
+        : (targetProfile['namaLengkap'] ?? '-');
+    final namaAkhwat = targetIsIkhwan
+        ? (pengajuProfile['namaLengkap'] ?? requestData['namaLengkap'] ?? '-')
+        : (targetProfile['namaLengkap'] ?? '-');
+
+    final ustadzUser = await FirebaseService.getRandomUstadz();
+    if (ustadzUser == null || ustadzUser.id.isEmpty) {
+      return null;
+    }
+
+    return {
+      'members': [pengajuId, targetId, ustadzUser.id],
+      'requestId': requestId,
+      'pengajuId': pengajuId,
+      'targetId': targetId,
+      'ikhwanId': ikhwanId,
+      'akhwatId': akhwatId,
+      'ustadzId': ustadzUser.id,
+      'nama_ikhwan': namaIkhwan,
+      'nama_akhwat': namaAkhwat,
+      'nama_ustadz': ustadzUser.nama.isNotEmpty ? ustadzUser.nama : 'Ustadz',
+      'lastMessage': '',
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
   }
 }

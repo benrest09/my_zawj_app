@@ -76,7 +76,11 @@ class ChatController {
         .snapshots()
         .asyncMap((snapshot) async {
           final hasil = await Future.wait(
-            snapshot.docs.map((doc) async {
+            snapshot.docs.where((doc) {
+              final data = doc.data();
+              final requestId = data['requestId']?.toString() ?? '';
+              return requestId.isNotEmpty;
+            }).map((doc) async {
               final data = await _pastikanUstadzDiGrup(
                 ruangChatId: doc.id,
                 data: doc.data(),
@@ -168,6 +172,15 @@ class ChatController {
     final updatedMembers = [...members];
     if (!updatedMembers.contains(ustadzUser.id)) {
       updatedMembers.add(ustadzUser.id);
+    }
+
+    final pengajuId = data['pengajuId']?.toString() ?? '';
+    final targetId = data['targetId']?.toString() ?? '';
+    if (pengajuId.isNotEmpty && !updatedMembers.contains(pengajuId)) {
+      updatedMembers.add(pengajuId);
+    }
+    if (targetId.isNotEmpty && !updatedMembers.contains(targetId)) {
+      updatedMembers.add(targetId);
     }
 
     final updatedData = {
