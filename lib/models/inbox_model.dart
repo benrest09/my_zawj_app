@@ -58,7 +58,7 @@ class InboxModel {
       pengajuId: map['pengajuId'] ?? '',
       targetId: map['targetId'] ?? '',
       status: map['status'] ?? 'pending',
-      pesanPengajuan: map['pesanPengajuan'] ?? '',
+      pesanPengajuan: map['pesanPengajuan'] ?? map['pesan'] ?? '',
       createdAt: map['createdAt'],
       namaLengkap: map['namaLengkap'] ?? '-',
       jenisKelamin: map['jenisKelamin'] ?? '-',

@@ -22,6 +22,19 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final TextEditingController _pesanController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  // Auto scroll ke bawah saat pesan baru masuk
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
   Future<void> _kirimPesan() async {
     if (_pesanController.text.trim().isEmpty) return;
 
@@ -36,6 +49,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Widget _buildBubble(Map<String, dynamic> pesan) {
     final senderId = pesan['senderId'] ?? '';
     final isiPesan = pesan['pesan'] ?? '';
+    final namaPengirim =
+        pesan['namaPengirimTampil'] ?? pesan['namaPengirim'] ?? '';
     final isMe = senderId == FirebaseAuth.instance.currentUser?.uid;
 
     return Align(
@@ -47,7 +62,27 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           color: isMe ? Colors.pink[100] : Colors.grey[200],
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(isiPesan, style: GoogleFonts.poppins(fontSize: 14)),
+        child: Column(
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
+          children: [
+            // Nama pengirim hanya tampil untuk pesan orang lain
+            if (!isMe && namaPengirim.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  namaPengirim,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal,
+                  ),
+                ),
+              ),
+            Text(isiPesan, style: GoogleFonts.poppins(fontSize: 14)),
+          ],
+        ),
       ),
     );
   }
@@ -86,24 +121,37 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.namaLawanBicara)),
+      appBar: AppBar(
+        title: StreamBuilder<Map<String, dynamic>?>(
+          stream: _chatController.streamInfoRuangChat(widget.ruangChatId),
+          builder: (context, snapshot) {
+            final title =
+                snapshot.data?['title']?.toString() ??
+                widget.namaLawanBicara;
+            return Text(title);
+          },
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
             child: StreamBuilder(
-              stream: _chatController.streamPesanChat(widget.ruangChatId),
+              stream: _chatController.streamPesanChatDetail(widget.ruangChatId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final docs = snapshot.data!.docs;
+                final docs = snapshot.data!;
+
+                // Auto scroll setiap ada pesan baru
+                _scrollToBottom();
 
                 return ListView.builder(
                   controller: _scrollController,
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
+                    final data = docs[index];
                     return _buildBubble(data);
                   },
                 );

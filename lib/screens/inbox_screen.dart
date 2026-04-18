@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zawj_app/controllers/inbox_controller.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/models/inbox_model.dart';
 import 'package:zawj_app/screens/chat_group_screen.dart';
 import 'package:zawj_app/screens/detail_inbox.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 
 class InboxScreen extends StatefulWidget {
@@ -35,7 +35,7 @@ class _InboxScreenState extends State<InboxScreen> {
     });
 
     try {
-      final userId = await PreferenceHandler.getUserId();
+      final userId = FirebaseAuth.instance.currentUser?.uid;
       debugPrint('INBOX USER ID: $userId');
 
       if (userId == null) {

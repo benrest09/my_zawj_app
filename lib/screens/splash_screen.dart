@@ -4,7 +4,7 @@ import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/screens/login_screen.dart';
 import 'package:zawj_app/screens/navbar.dart';
 import 'package:zawj_app/screens/onboarding_screen1.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zawj_app/services/preference_handler.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -24,10 +24,7 @@ class SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     final user = FirebaseAuth.instance.currentUser;
-
-    // ambil onboarding dari local
-    final prefs = await SharedPreferences.getInstance();
-    final sudahOnboarding = prefs.getBool('onboarding') ?? false;
+    final sudahOnboarding = await PreferenceHandler.isOnboardingDone();
 
     if (!mounted) return;
 

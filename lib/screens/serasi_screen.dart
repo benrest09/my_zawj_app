@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zawj_app/controllers/serasi_controller.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/models/serasi_model.dart';
 import 'package:zawj_app/screens/detail_serasi_screen.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 
 class SerasiScreen extends StatefulWidget {
@@ -16,72 +16,6 @@ class SerasiScreen extends StatefulWidget {
 
 class _SerasiScreenState extends State<SerasiScreen> {
   final SerasiController _controller = SerasiController();
-
-  List<SerasiModel> _profiles = [];
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSerasi();
-  }
-
-  Future<void> _loadSerasi() async {
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final String? idPengguna = await PreferenceHandler.getUserId();
-
-      if (idPengguna == null) {
-        if (!mounted) return;
-        setState(() {
-          _profiles = [];
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final Map<String, dynamic>? profilSaya = await _controller
-          .getProfileByUserId(idPengguna);
-
-      final String jenisKelaminSaya = _controller.normalisasiJenisKelamin(
-        profilSaya?['jenis_kelamin']?.toString() ?? '',
-      );
-
-      if (jenisKelaminSaya.isEmpty) {
-        if (!mounted) return;
-        setState(() {
-          _profiles = [];
-          _isLoading = false;
-        });
-        return;
-      }
-
-      final List<SerasiModel> profiles = await _controller.getSerasiProfiles(
-        currentGender: jenisKelaminSaya,
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _profiles = profiles;
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint('Error load serasi: $e');
-
-      if (!mounted) return;
-
-      setState(() {
-        _profiles = [];
-        _isLoading = false;
-      });
-    }
-  }
 
   Widget _buildInfoChip(IconData icon, String label) {
     return Container(
@@ -115,6 +49,10 @@ class _SerasiScreenState extends State<SerasiScreen> {
   Widget _buildProfileCard(SerasiModel profile) {
     final bool pakaiAsset =
         profile.fotoProfil == null || profile.fotoProfil!.trim().isEmpty;
+    final bool fotoNetwork =
+        !pakaiAsset &&
+        (profile.fotoProfil!.startsWith('http://') ||
+            profile.fotoProfil!.startsWith('https://'));
 
     final String avatarPath = pakaiAsset
         ? (profile.jenisKelamin == 'Akhwat'
@@ -154,7 +92,12 @@ class _SerasiScreenState extends State<SerasiScreen> {
                   CircleAvatar(
                     radius: 48,
                     backgroundColor: Colors.grey.shade200,
-                    backgroundImage: AssetImage(avatarPath),
+                    backgroundImage: pakaiAsset
+                        ? AssetImage(avatarPath)
+                        : (fotoNetwork
+                                  ? NetworkImage(avatarPath)
+                                  : AssetImage(avatarPath))
+                              as ImageProvider,
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -300,20 +243,70 @@ class _SerasiScreenState extends State<SerasiScreen> {
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _profiles.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _loadSerasi,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _profiles.length,
-                itemBuilder: (context, index) {
-                  return _buildProfileCard(_profiles[index]);
+      body: FutureBuilder<String?>(
+        future: Future.value(FirebaseAuth.instance.currentUser?.uid),
+        builder: (context, snapshotUser) {
+          if (snapshotUser.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final userId = snapshotUser.data;
+
+          if (userId == null) {
+            return _buildEmptyState();
+          }
+
+          return FutureBuilder<Map<String, dynamic>?>(
+            future: _controller.getProfileByUserId(userId),
+            builder: (context, snapshotProfile) {
+              if (snapshotProfile.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final profilSaya = snapshotProfile.data;
+              final jenisKelaminSaya = _controller.normalisasiJenisKelamin(
+                profilSaya?['jenisKelamin']?.toString() ?? '',
+              );
+
+              if (jenisKelaminSaya.isEmpty) {
+                return _buildEmptyState();
+              }
+
+              return StreamBuilder<List<SerasiModel>>(
+                stream: _controller.streamSerasiProfiles(
+                  currentGender: jenisKelaminSaya,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return _buildEmptyState();
+                  }
+
+                  final profiles = snapshot.data ?? [];
+
+                  if (profiles.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () async {},
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: profiles.length,
+                      itemBuilder: (context, index) {
+                        return _buildProfileCard(profiles[index]);
+                      },
+                    ),
+                  );
                 },
-              ),
-            ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

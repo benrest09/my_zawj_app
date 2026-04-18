@@ -20,34 +20,28 @@ class ProfileModel {
   String? pekerjaan;
   String? bidangPekerjaan;
   String? penghasilan;
-
   String? targetNikah;
-
-  bool waliTahu;
-  bool bersediaPindah;
-
-  String? tentangSaya;
-
   String? statusNikah;
-  bool punyaAnak;
-  int jumlahAnak;
-
   String? mauPoligami;
-
   String? sholat;
   String? kajianRutin;
   String? hafalanQuran;
-
-  bool bercadar;
   String? panjangHijab;
+
+  String? tentangSaya;
+  String? jumlahAnak;
+
+  bool waliTahu;
+  bool bersediaPindah;
+  bool punyaAnak;
+  bool bercadar;
+  bool setujuTidakKomunikasi;
+  bool setujuSatuTaaruf;
+  bool setujuKebijakan;
 
   String? fotoKtp;
   String? akteCerai;
   String? buktiSedekah;
-
-  bool setujuTidakKomunikasiDiluarSistem;
-  bool setujuSatuTaarufSatuWaktu;
-  bool setujuKebijakanPrivasi;
 
   bool isProfileComplete;
 
@@ -70,24 +64,24 @@ class ProfileModel {
     this.bidangPekerjaan,
     this.penghasilan,
     this.targetNikah,
-    this.waliTahu = false,
-    this.bersediaPindah = false,
-    this.tentangSaya,
     this.statusNikah,
-    this.punyaAnak = false,
-    this.jumlahAnak = 0,
     this.mauPoligami,
     this.sholat,
     this.kajianRutin,
     this.hafalanQuran,
-    this.bercadar = false,
     this.panjangHijab,
+    this.tentangSaya,
+    this.jumlahAnak,
+    this.waliTahu = false,
+    this.bersediaPindah = false,
+    this.punyaAnak = false,
+    this.bercadar = false,
+    this.setujuTidakKomunikasi = false,
+    this.setujuSatuTaaruf = false,
+    this.setujuKebijakan = false,
     this.fotoKtp,
     this.akteCerai,
     this.buktiSedekah,
-    this.setujuTidakKomunikasiDiluarSistem = false,
-    this.setujuSatuTaarufSatuWaktu = false,
-    this.setujuKebijakanPrivasi = false,
     this.isProfileComplete = false,
     this.createdAt,
     this.updatedAt,
@@ -110,26 +104,26 @@ class ProfileModel {
       'bidangPekerjaan': bidangPekerjaan,
       'penghasilan': penghasilan,
       'targetNikah': targetNikah,
-      'waliTahu': waliTahu,
-      'bersediaPindah': bersediaPindah,
-      'tentangSaya': tentangSaya,
       'statusNikah': statusNikah,
-      'punyaAnak': punyaAnak,
-      'jumlahAnak': jumlahAnak,
       'mauPoligami': mauPoligami,
       'sholat': sholat,
       'kajianRutin': kajianRutin,
       'hafalanQuran': hafalanQuran,
-      'bercadar': bercadar,
       'panjangHijab': panjangHijab,
+      'tentangSaya': tentangSaya,
+      'jumlahAnak': jumlahAnak,
+      'waliTahu': waliTahu,
+      'bersediaPindah': bersediaPindah,
+      'punyaAnak': punyaAnak,
+      'bercadar': bercadar,
+      'setujuTidakKomunikasi': setujuTidakKomunikasi,
+      'setujuSatuTaaruf': setujuSatuTaaruf,
+      'setujuKebijakan': setujuKebijakan,
       'fotoKtp': fotoKtp,
       'akteCerai': akteCerai,
       'buktiSedekah': buktiSedekah,
-      'setujuTidakKomunikasiDiluarSistem': setujuTidakKomunikasiDiluarSistem,
-      'setujuSatuTaarufSatuWaktu': setujuSatuTaarufSatuWaktu,
-      'setujuKebijakanPrivasi': setujuKebijakanPrivasi,
       'isProfileComplete': isProfileComplete,
-      'createdAt': createdAt ?? FieldValue.serverTimestamp(),
+      'createdAt': createdAt,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
@@ -151,25 +145,24 @@ class ProfileModel {
       bidangPekerjaan: map['bidangPekerjaan'],
       penghasilan: map['penghasilan'],
       targetNikah: map['targetNikah'],
-      waliTahu: map['waliTahu'] ?? false,
-      bersediaPindah: map['bersediaPindah'] ?? false,
-      tentangSaya: map['tentangSaya'],
       statusNikah: map['statusNikah'],
-      punyaAnak: map['punyaAnak'] ?? false,
-      jumlahAnak: map['jumlahAnak'] ?? 0,
       mauPoligami: map['mauPoligami'],
       sholat: map['sholat'],
       kajianRutin: map['kajianRutin'],
       hafalanQuran: map['hafalanQuran'],
-      bercadar: map['bercadar'] ?? false,
       panjangHijab: map['panjangHijab'],
+      tentangSaya: map['tentangSaya'],
+      jumlahAnak: map['jumlahAnak'],
+      waliTahu: map['waliTahu'] ?? false,
+      bersediaPindah: map['bersediaPindah'] ?? false,
+      punyaAnak: map['punyaAnak'] ?? false,
+      bercadar: map['bercadar'] ?? false,
+      setujuTidakKomunikasi: map['setujuTidakKomunikasi'] ?? false,
+      setujuSatuTaaruf: map['setujuSatuTaaruf'] ?? false,
+      setujuKebijakan: map['setujuKebijakan'] ?? false,
       fotoKtp: map['fotoKtp'],
       akteCerai: map['akteCerai'],
       buktiSedekah: map['buktiSedekah'],
-      setujuTidakKomunikasiDiluarSistem:
-          map['setujuTidakKomunikasiDiluarSistem'] ?? false,
-      setujuSatuTaarufSatuWaktu: map['setujuSatuTaarufSatuWaktu'] ?? false,
-      setujuKebijakanPrivasi: map['setujuKebijakanPrivasi'] ?? false,
       isProfileComplete: map['isProfileComplete'] ?? false,
       createdAt: map['createdAt'],
       updatedAt: map['updatedAt'],

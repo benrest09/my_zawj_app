@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zawj_app/controllers/serasi_controller.dart';
 import 'package:zawj_app/models/serasi_model.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 
 class DetailSerasiScreen extends StatefulWidget {
@@ -28,7 +28,7 @@ class _DetailSerasiScreenState extends State<DetailSerasiScreen> {
       return;
     }
 
-    final userId = await PreferenceHandler.getUserId();
+    final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) {
       ScaffoldMessenger.of(
         context,

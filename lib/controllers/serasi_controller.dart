@@ -6,26 +6,32 @@ class SerasiController {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
-  Future<List<SerasiModel>> getSerasiProfiles({
+  Stream<List<SerasiModel>> streamSerasiProfiles({
     required String currentGender,
-  }) async {
+  }) {
     final user = _auth.currentUser;
-    if (user == null) return [];
+    if (user == null) return const Stream.empty();
 
-    final query = await _firestore
+    return _firestore
         .collection('profiles')
-        .where('jenis_kelamin', isNotEqualTo: currentGender)
-        .get();
-
-    return query.docs
-        .where((doc) => doc.id != user.uid)
+        .where('isProfileComplete', isEqualTo: true)
+        .snapshots()
         .map(
-          (doc) => SerasiModel.fromMap({
-            ...doc.data(),
-            'uid': doc.id, // 🔥 INI PENTING
-          }),
-        )
-        .toList();
+          (snapshot) => snapshot.docs
+              .where((doc) {
+                final data = doc.data();
+                final gender = normalisasiJenisKelamin(
+                  data['jenisKelamin']?.toString() ?? '',
+                );
+
+                return doc.id != user.uid && gender.isNotEmpty && gender != currentGender;
+              })
+              .map((doc) => SerasiModel.fromMap({
+                    ...doc.data(),
+                    'uid': doc.id,
+                  }))
+              .toList(),
+        );
   }
 
   Future<String?> validateAjukanTaaruf({
@@ -54,9 +60,25 @@ class SerasiController {
     if (user == null) return 'User belum login';
 
     try {
+      final pengajuProfileDoc = await _firestore
+          .collection('profiles')
+          .doc(user.uid)
+          .get();
+
+      final pengajuProfile = pengajuProfileDoc.data() ?? {};
+
       await _firestore.collection('taaruf_requests').add({
         'pengajuId': user.uid,
         'targetId': targetId,
+        'namaLengkap':
+            pengajuProfile['namaLengkap'] ?? user.displayName ?? 'Tanpa Nama',
+        'jenisKelamin': pengajuProfile['jenisKelamin'] ?? '-',
+        'usia': pengajuProfile['usia'] ?? 0,
+        'domisili': pengajuProfile['domisili'] ?? '-',
+        'fotoProfil': pengajuProfile['fotoProfil'],
+        'pendidikan': pengajuProfile['pendidikan'] ?? '-',
+        'pekerjaan': pengajuProfile['pekerjaan'] ?? '-',
+        'pesanPengajuan': pesanPengajuan ?? '',
         'pesan': pesanPengajuan ?? '',
         'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),

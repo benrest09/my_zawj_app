@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zawj_app/controllers/lengkapi_profil_controller.dart';
 import 'package:zawj_app/extention/navigator.dart';
+import 'package:zawj_app/models/profile_model.dart';
 import 'package:zawj_app/screens/navbar.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 import 'package:zawj_app/widgets/custom_button.dart';
 import 'package:zawj_app/widgets/custom_textfield.dart';
@@ -304,9 +308,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
                     ),
                   ),
                   Text(
-                    filePath == null
-                        ? "Klik untuk upload"
-                        : filePath.split('/').last,
+                    _getFileLabel(filePath),
                     style: TextStyle(fontSize: 12, color: AppColor.abutua),
                   ),
                 ],
@@ -319,8 +321,419 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
     );
   }
 
+  Future<String?> _uploadFileToFirebase({
+    required String path,
+    required String folder,
+    required String fileName,
+  }) async {
+    try {
+      File file = File(path);
+
+      final ref = FirebaseStorage.instance.ref().child('$folder/$fileName');
+
+      UploadTask uploadTask = ref.putFile(file);
+      await uploadTask.whenComplete(() {});
+
+      final downloadUrl = await ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      debugPrint("UPLOAD ERROR: $e");
+      return null;
+    }
+  }
+
+  bool _isRemoteFile(String? path) {
+    if (path == null || path.isEmpty) return false;
+    return path.startsWith('http://') || path.startsWith('https://');
+  }
+
+  String _getFileLabel(String? filePath) {
+    if (filePath == null || filePath.isEmpty) {
+      return "Klik untuk upload";
+    }
+
+    if (_isRemoteFile(filePath)) {
+      final uri = Uri.tryParse(filePath);
+      final segments = uri?.pathSegments ?? const <String>[];
+      if (segments.isNotEmpty) {
+        return segments.last;
+      }
+      return "Dokumen sudah tersimpan";
+    }
+
+    final normalizedPath = filePath.replaceAll('\\', '/');
+    return normalizedPath.split('/').last;
+  }
+
+  Future<String?> _uploadDokumenJikaPerlu({
+    required String? currentPath,
+    required String folder,
+    required String fileName,
+  }) async {
+    if (currentPath == null || currentPath.isEmpty) {
+      return null;
+    }
+
+    if (_isRemoteFile(currentPath)) {
+      return currentPath;
+    }
+
+    return _uploadFileToFirebase(
+      path: currentPath,
+      folder: folder,
+      fileName: fileName,
+    );
+  }
+
+  void _isiFormDariProfile(ProfileModel profile, {String? namaRegister}) {
+    _fotoProfilPath = profile.fotoProfil;
+    _namaLengkapController.text =
+        (profile.namaLengkap != null && profile.namaLengkap!.trim().isNotEmpty)
+        ? profile.namaLengkap!
+        : (namaRegister ?? '');
+    _tanggalLahirController.text = profile.tanggalLahir ?? '';
+    _usiaController.text = profile.usia?.toString() ?? '';
+    _tempatLahirController.text = profile.tempatLahir ?? '';
+    _domisiliController.text = profile.domisili ?? '';
+    _sukuController.text = profile.suku ?? '';
+    _kewarganegaraanController.text = profile.kewarganegaraan ?? '';
+    _pekerjaanController.text = profile.pekerjaan ?? '';
+    _bidangPekerjaanController.text = profile.bidangPekerjaan ?? '';
+    _penghasilanController.text = profile.penghasilan ?? '';
+    _tentangSayaController.text = profile.tentangSaya ?? '';
+    _kajianRutinController.text = profile.kajianRutin ?? '';
+    _jumlahAnakController.text = profile.jumlahAnak ?? '';
+
+    _jenisKelamin = profile.jenisKelamin ?? 'Ikhwan';
+    _pendidikan = profile.pendidikan ?? 'SD';
+    _targetNikah = profile.targetNikah ?? '< 6 bulan';
+    _statusNikah = profile.statusNikah ?? 'Belum menikah';
+    _mauPoligami = profile.mauPoligami ?? 'Ya, saya bersedia';
+    _sholat = profile.sholat ?? 'Selalu tepat waktu';
+    _hafalanQuran = profile.hafalanQuran ?? 'Juz 30';
+    _panjangHijab = profile.panjangHijab ?? 'Tidak Berhijab';
+    _waliTahu = profile.waliTahu;
+    _bersediaPindah = profile.bersediaPindah;
+    _punyaAnak = profile.punyaAnak;
+    _bercadar = profile.bercadar;
+    _setujuTidakKomunikasiDiluarSistem = profile.setujuTidakKomunikasi;
+    _setujuSatuTaarufSatuWaktu = profile.setujuSatuTaaruf;
+    _setujuKebijakanPrivasi = profile.setujuKebijakan;
+    _fotoKtpPath = profile.fotoKtp;
+    _akteCeraiPath = profile.akteCerai;
+    _buktiSedekahPath = profile.buktiSedekah;
+  }
+
+  Widget _buildSectionCard({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: Colors.pink[300], size: 30),
+                const SizedBox(width: 6),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 23,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+      ),
+    );
+  }
+
+  Widget _buildSpacingField({
+    required String label,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFieldLabel(label),
+        child,
+        const SizedBox(height: 10),
+      ],
+    );
+  }
+
+  Widget _buildYesNoRadio({
+    required bool groupValue,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: RadioListTile<bool>(
+            title: const Text("Ya"),
+            value: true,
+            groupValue: groupValue,
+            onChanged: (value) => onChanged(value ?? false),
+            activeColor: const Color.fromARGB(255, 255, 119, 164),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        Expanded(
+          child: RadioListTile<bool>(
+            title: const Text("Tidak"),
+            value: false,
+            groupValue: groupValue,
+            onChanged: (value) => onChanged(value ?? false),
+            activeColor: const Color.fromARGB(255, 255, 119, 164),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCheckboxPersetujuan({
+    required bool value,
+    required String title,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return CheckboxListTile(
+      value: value,
+      onChanged: (newValue) => onChanged(newValue ?? false),
+      activeColor: AppColor.pinktua,
+      title: Text(title, style: const TextStyle(fontSize: 14)),
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _buildPendidikanKarirSection() {
+    return _buildSectionCard(
+      icon: Icons.school,
+      title: "Pendidikan & Karir",
+      children: [
+        _buildSpacingField(
+          label: "Pendidikan Terakhir",
+          child: DropdownButtonFormField<String>(
+            initialValue: _pendidikan,
+            items: ['SD', 'SMP', 'SMA', 'S1', 'S2', 'S3'].map((value) {
+              return DropdownMenuItem<String>(value: value, child: Text(value));
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue == null) return;
+              setState(() {
+                _pendidikan = newValue;
+              });
+            },
+          ),
+        ),
+        _buildSpacingField(
+          label: "Pekerjaan",
+          child: TextFormField(
+            controller: _pekerjaanController,
+            decoration: customTextField(hintText: "Pekerjaan"),
+          ),
+        ),
+        _buildSpacingField(
+          label: "Bidang Pekerjaan",
+          child: TextFormField(
+            controller: _bidangPekerjaanController,
+            decoration: customTextField(hintText: "Bidang Pekerjaan"),
+          ),
+        ),
+        _buildSpacingField(
+          label: "Kisaran Penghasilan (Optional)",
+          child: TextFormField(
+            controller: _penghasilanController,
+            decoration: customTextField(hintText: "Kisaran Penghasilan"),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPemahamanAgamaSection() {
+    return _buildSectionCard(
+      icon: Icons.menu_book,
+      title: "Pemahaman Agama",
+      children: [
+        _buildSpacingField(
+          label: "Bagaimana sholatnya?",
+          child: DropdownButtonFormField<String>(
+            decoration: customTextField(hintText: "Rutinitas Sholat"),
+            initialValue: _sholat,
+            items: [
+              'Selalu tepat waktu',
+              'Sering tepat waktu',
+              'Kadang-kadang',
+              'Jarang',
+            ].map((value) {
+              return DropdownMenuItem<String>(value: value, child: Text(value));
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue == null) return;
+              setState(() {
+                _sholat = newValue;
+              });
+            },
+          ),
+        ),
+        _buildSpacingField(
+          label: "Apakah mengikuti kajian rutin?",
+          child: TextFormField(
+            controller: _kajianRutinController,
+            decoration: customTextField(
+              hintText: "Jika iya, kajian apa dan dimana",
+            ),
+          ),
+        ),
+        _buildSpacingField(
+          label: "Hafalan Al-Quran",
+          child: DropdownButtonFormField<String>(
+            decoration: customTextField(hintText: "Hafalan Al-Qur'an"),
+            initialValue: _hafalanQuran,
+            items: [
+              'Juz 30',
+              '1-5 Juz',
+              '6-10 Juz',
+              '11-20 Juz',
+              '21-30 Juz',
+              '30 Juz',
+            ].map((value) {
+              return DropdownMenuItem<String>(value: value, child: Text(value));
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue == null) return;
+              setState(() {
+                _hafalanQuran = newValue;
+              });
+            },
+          ),
+        ),
+        _buildFieldLabel("Apakah Bercadar"),
+        _buildYesNoRadio(
+          groupValue: _bercadar,
+          onChanged: (value) {
+            setState(() {
+              _bercadar = value;
+            });
+          },
+        ),
+        const SizedBox(height: 10),
+        _buildSpacingField(
+          label: "Panjang Hijab",
+          child: DropdownButtonFormField<String>(
+            decoration: customTextField(hintText: "Panjang hijab"),
+            initialValue: _panjangHijab,
+            items: [
+              'Tidak Berhijab',
+              'Lilit leher',
+              'Menutupi dada',
+              'Menutupi perut',
+              'Menutupi lutut',
+            ].map((value) {
+              return DropdownMenuItem<String>(value: value, child: Text(value));
+            }).toList(),
+            onChanged: (newValue) {
+              if (newValue == null) return;
+              setState(() {
+                _panjangHijab = newValue;
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDokumenSection() {
+    return _buildSectionCard(
+      icon: Icons.description,
+      title: "Upload Dokumen",
+      children: [
+        _buildUploadItem(
+          title: "Foto KTP",
+          filePath: _fotoKtpPath,
+          onTap: _pilihSumberKtp,
+        ),
+        if (_statusNikah == 'Cerai Hidup' || _statusNikah == 'Cerai Mati') ...[
+          const SizedBox(height: 12),
+          _buildUploadItem(
+            title: _statusNikah == 'Cerai Hidup'
+                ? "Akte Cerai"
+                : "Akte Kematian",
+            filePath: _akteCeraiPath,
+            onTap: _pilihSumberAkteCerai,
+          ),
+        ],
+        const SizedBox(height: 12),
+        _buildUploadItem(
+          title: "Bukti Sedekah",
+          filePath: _buktiSedekahPath,
+          onTap: _pilihSumberBuktiSedekah,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPersetujuanSection() {
+    return _buildSectionCard(
+      icon: Icons.assignment_turned_in,
+      title: "Persetujuan & Kebijakan",
+      children: [
+        _buildCheckboxPersetujuan(
+          value: _setujuTidakKomunikasiDiluarSistem,
+          title: "Saya siap tidak berkomunikasi diluar sistem",
+          onChanged: (value) {
+            setState(() {
+              _setujuTidakKomunikasiDiluarSistem = value;
+            });
+          },
+        ),
+        _buildCheckboxPersetujuan(
+          value: _setujuSatuTaarufSatuWaktu,
+          title: "Setuju jika hanya satu kali taaruf dalam satu waktu",
+          onChanged: (value) {
+            setState(() {
+              _setujuSatuTaarufSatuWaktu = value;
+            });
+          },
+        ),
+        _buildCheckboxPersetujuan(
+          value: _setujuKebijakanPrivasi,
+          title: "Menyetujui kebijakan privasi dan aturan aplikasi",
+          onChanged: (value) {
+            setState(() {
+              _setujuKebijakanPrivasi = value;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
   Future<void> _simpanProfil() async {
-    final userId = await PreferenceHandler.getUserId();
+    final userId = FirebaseAuth.instance.currentUser?.uid;
 
     if (userId == null) {
       ScaffoldMessenger.of(
@@ -353,51 +766,65 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
       _isLoading = true;
     });
 
-    final dataProfil = {
-      'user_id': userId,
-      'foto_profil': _fotoProfilPath,
-      'nama_lengkap': _namaLengkapController.text.trim(),
-      'jenis_kelamin': _jenisKelamin,
-      'tanggal_lahir': _tanggalLahirController.text.trim(),
-      'usia': int.tryParse(_usiaController.text) ?? 0,
-      'tempat_lahir': _tempatLahirController.text.trim(),
-      'domisili': _domisiliController.text.trim(),
-      'suku': _sukuController.text.trim(),
-      'kewarganegaraan': _kewarganegaraanController.text.trim(),
-      'pendidikan': _pendidikan,
-      'pekerjaan': _pekerjaanController.text.trim(),
-      'bidang_pekerjaan': _bidangPekerjaanController.text.trim(),
-      'penghasilan': _penghasilanController.text.trim(),
-      'target_nikah': _targetNikah,
-      'wali_tahu': _waliTahu ? 1 : 0,
-      'bersedia_pindah': _bersediaPindah ? 1 : 0,
-      'tentang_saya': _tentangSayaController.text.trim(),
-      'status_nikah': _statusNikah,
-      'punya_anak': _punyaAnak ? 1 : 0,
-      'jumlah_anak': _punyaAnak
-          ? int.tryParse(_jumlahAnakController.text) ?? 0
-          : 0,
-      'mau_poligami': _mauPoligami,
-      'sholat': _sholat,
-      'kajian_rutin': _kajianRutinController.text.trim(),
-      'hafalan_quran': _hafalanQuran,
-      'bercadar': _bercadar ? 1 : 0,
-      'panjang_hijab': _panjangHijab,
-      'foto_ktp': _fotoKtpPath,
-      'akte_cerai':
-          (_statusNikah == 'Cerai Hidup' || _statusNikah == 'Cerai Mati')
-          ? _akteCeraiPath
-          : null,
-      'bukti_sedekah': _buktiSedekahPath,
-      'setuju_tidak_komunikasi_diluar_sistem':
-          _setujuTidakKomunikasiDiluarSistem ? 1 : 0,
-      'setuju_satu_taaruf_satu_waktu': _setujuSatuTaarufSatuWaktu ? 1 : 0,
-      'setuju_kebijakan_privasi': _setujuKebijakanPrivasi ? 1 : 0,
-      'is_profile_complete': 1,
-    };
-
     try {
-      await _profilController.simpanProfil(dataProfil: dataProfil, uid: '');
+      final ktpUrl = await _uploadDokumenJikaPerlu(
+        currentPath: _fotoKtpPath,
+        folder: 'ktp',
+        fileName: '$userId.jpg',
+      );
+      final akteUrl = await _uploadDokumenJikaPerlu(
+        currentPath: _akteCeraiPath,
+        folder: 'akte',
+        fileName: '$userId.jpg',
+      );
+      final sedekahUrl = await _uploadDokumenJikaPerlu(
+        currentPath: _buktiSedekahPath,
+        folder: 'sedekah',
+        fileName: '$userId.jpg',
+      );
+
+      final profile = ProfileModel(
+        uid: userId,
+        fotoProfil: _fotoProfilPath,
+        namaLengkap: _namaLengkapController.text.trim(),
+        jenisKelamin: _jenisKelamin,
+        tanggalLahir: _tanggalLahirController.text.trim(),
+        usia: int.tryParse(_usiaController.text),
+        tempatLahir: _tempatLahirController.text.trim(),
+        domisili: _domisiliController.text.trim(),
+        suku: _sukuController.text.trim(),
+        kewarganegaraan: _kewarganegaraanController.text.trim(),
+        pendidikan: _pendidikan,
+        pekerjaan: _pekerjaanController.text.trim(),
+        bidangPekerjaan: _bidangPekerjaanController.text.trim(),
+        penghasilan: _penghasilanController.text.trim(),
+        targetNikah: _targetNikah,
+        statusNikah: _statusNikah,
+        mauPoligami: _mauPoligami,
+        sholat: _sholat,
+        kajianRutin: _kajianRutinController.text.trim(),
+        hafalanQuran: _hafalanQuran,
+        panjangHijab: _panjangHijab,
+        tentangSaya: _tentangSayaController.text.trim(),
+        jumlahAnak: _jumlahAnakController.text.trim(),
+        waliTahu: _waliTahu,
+        bersediaPindah: _bersediaPindah,
+        punyaAnak: _punyaAnak,
+        bercadar: _bercadar,
+        setujuTidakKomunikasi: _setujuTidakKomunikasiDiluarSistem,
+        setujuSatuTaaruf: _setujuSatuTaarufSatuWaktu,
+        setujuKebijakan: _setujuKebijakanPrivasi,
+        fotoKtp: ktpUrl,
+        akteCerai: akteUrl,
+        buktiSedekah: sedekahUrl,
+      );
+
+      final result = await _profilController.simpanProfil(
+        uid: userId,
+        profile: profile,
+      );
+
+      if (result != null) throw Exception(result);
 
       if (!mounted) return;
 
@@ -424,54 +851,23 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
   }
 
   Future<void> _loadDataProfil() async {
-    final userId = await PreferenceHandler.getUserId();
-
+    final userId = FirebaseAuth.instance.currentUser?.uid;
     if (userId == null) return;
 
     final profile = await _profilController.loadProfil(userId);
+    final namaRegister = await _profilController.loadNamaRegister(userId);
 
-    if (profile == null) return;
+    if (profile == null) {
+      if (!mounted) return;
+
+      setState(() {
+        _namaLengkapController.text = namaRegister ?? '';
+      });
+      return;
+    }
 
     setState(() {
-      _fotoProfilPath = profile['foto_profil'];
-
-      _namaLengkapController.text = profile['nama_lengkap'] ?? '';
-      _tanggalLahirController.text = profile['tanggal_lahir'] ?? '';
-      _usiaController.text = profile['usia']?.toString() ?? '';
-      _tempatLahirController.text = profile['tempat_lahir'] ?? '';
-      _domisiliController.text = profile['domisili'] ?? '';
-      _sukuController.text = profile['suku'] ?? '';
-      _kewarganegaraanController.text = profile['kewarganegaraan'] ?? '';
-      _pekerjaanController.text = profile['pekerjaan'] ?? '';
-      _bidangPekerjaanController.text = profile['bidang_pekerjaan'] ?? '';
-      _penghasilanController.text = profile['penghasilan'] ?? '';
-      _tentangSayaController.text = profile['tentang_saya'] ?? '';
-      _kajianRutinController.text = profile['kajian_rutin'] ?? '';
-      _jumlahAnakController.text = profile['jumlah_anak']?.toString() ?? '';
-
-      _jenisKelamin = profile['jenis_kelamin'] ?? 'Ikhwan';
-      _pendidikan = profile['pendidikan'] ?? 'SD';
-      _targetNikah = profile['target_nikah'] ?? '< 6 bulan';
-      _statusNikah = profile['status_nikah'] ?? 'Belum menikah';
-      _mauPoligami = profile['mau_poligami'] ?? 'Ya, saya bersedia';
-      _sholat = profile['sholat'] ?? 'Selalu tepat waktu';
-      _hafalanQuran = profile['hafalan_quran'] ?? 'Juz 30';
-      _panjangHijab = profile['panjang_hijab'] ?? 'Tidak Berhijab';
-
-      _waliTahu = (profile['wali_tahu'] ?? 0) == 1;
-      _bersediaPindah = (profile['bersedia_pindah'] ?? 0) == 1;
-      _punyaAnak = (profile['punya_anak'] ?? 0) == 1;
-      _bercadar = (profile['bercadar'] ?? 0) == 1;
-
-      _setujuTidakKomunikasiDiluarSistem =
-          (profile['setuju_tidak_komunikasi_diluar_sistem'] ?? 0) == 1;
-      _setujuSatuTaarufSatuWaktu =
-          (profile['setuju_satu_taaruf_satu_waktu'] ?? 0) == 1;
-      _setujuKebijakanPrivasi = (profile['setuju_kebijakan_privasi'] ?? 0) == 1;
-
-      _fotoKtpPath = profile['foto_ktp'];
-      _akteCeraiPath = profile['akte_cerai'];
-      _buktiSedekahPath = profile['bukti_sedekah'];
+      _isiFormDariProfile(profile, namaRegister: namaRegister);
     });
   }
 
@@ -760,102 +1156,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
 
               const SizedBox(height: 20),
 
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.school, color: Colors.pink[300]),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Pendidikan & Karir",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Pendidikan Terakhir",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        initialValue: _pendidikan,
-                        items: ['SD', 'SMP', 'SMA', 'S1', 'S2', 'S3'].map((
-                          value,
-                        ) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-                          setState(() {
-                            _pendidikan = newValue;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Pekerjaan",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _pekerjaanController,
-                        decoration: customTextField(hintText: "Pekerjaan"),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Bidang Pekerjaan",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _bidangPekerjaanController,
-                        decoration: customTextField(
-                          hintText: "Bidang Pekerjaan",
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Kisaran Penghasilan (Optional)",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _penghasilanController,
-                        decoration: customTextField(
-                          hintText: "Kisaran Penghasilan",
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _buildPendidikanKarirSection(),
 
               const SizedBox(height: 20),
 
@@ -1207,336 +1508,15 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
 
               const SizedBox(height: 20),
 
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.menu_book,
-                            color: Colors.pink[300],
-                            size: 30,
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "Pemahaman Agama",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Bagaimana sholatnya?",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        decoration: customTextField(
-                          hintText: "Rutinitas Sholat",
-                        ),
-                        initialValue: _sholat,
-                        items:
-                            [
-                              'Selalu tepat waktu',
-                              'Sering tepat waktu',
-                              'Kadang-kadang',
-                              'Jarang',
-                            ].map((value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-                          setState(() {
-                            _sholat = newValue;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Apakah mengikuti kajian rutin?",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _kajianRutinController,
-                        decoration: customTextField(
-                          hintText: "Jika iya, kajian apa dan dimana",
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Hafalan Al-Quran",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        decoration: customTextField(
-                          hintText: "Hafalan Al-Qur'an",
-                        ),
-                        initialValue: _hafalanQuran,
-                        items:
-                            [
-                              'Juz 30',
-                              '1-5 Juz',
-                              '6-10 Juz',
-                              '11-20 Juz',
-                              '21-30 Juz',
-                              '30 Juz',
-                            ].map((value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-                          setState(() {
-                            _hafalanQuran = newValue;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Apakah Bercadar",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Ya"),
-                              value: true,
-                              groupValue: _bercadar,
-                              onChanged: (value) {
-                                setState(() {
-                                  _bercadar = value ?? false;
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Tidak"),
-                              value: false,
-                              groupValue: _bercadar,
-                              onChanged: (value) {
-                                setState(() {
-                                  _bercadar = value ?? false;
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Panjang Hijab",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        decoration: customTextField(hintText: "Panjang hijab"),
-                        initialValue: _panjangHijab,
-                        items:
-                            [
-                              'Tidak Berhijab',
-                              'Lilit leher',
-                              'Menutupi dada',
-                              'Menutupi perut',
-                              'Menutupi lutut',
-                            ].map((value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-                          setState(() {
-                            _panjangHijab = newValue;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _buildPemahamanAgamaSection(),
 
               const SizedBox(height: 20),
 
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.description,
-                            color: Colors.pink[300],
-                            size: 30,
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "Upload Dokumen",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildUploadItem(
-                        title: "Foto KTP",
-                        filePath: _fotoKtpPath,
-                        onTap: _pilihSumberKtp,
-                      ),
-                      if (_statusNikah == 'Cerai Hidup' ||
-                          _statusNikah == 'Cerai Mati') ...[
-                        const SizedBox(height: 12),
-                        _buildUploadItem(
-                          title: _statusNikah == 'Cerai Hidup'
-                              ? "Akte Cerai"
-                              : "Akte Kematian",
-                          filePath: _akteCeraiPath,
-                          onTap: _pilihSumberAkteCerai,
-                        ),
-                      ],
-                      const SizedBox(height: 12),
-                      _buildUploadItem(
-                        title: "Bukti Sedekah",
-                        filePath: _buktiSedekahPath,
-                        onTap: _pilihSumberBuktiSedekah,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _buildDokumenSection(),
 
               const SizedBox(height: 20),
 
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.assignment_turned_in,
-                            color: Colors.pink[300],
-                            size: 30,
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "Persetujuan & Kebijakan",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      CheckboxListTile(
-                        value: _setujuTidakKomunikasiDiluarSistem,
-                        onChanged: (value) {
-                          setState(() {
-                            _setujuTidakKomunikasiDiluarSistem = value ?? false;
-                          });
-                        },
-                        activeColor: AppColor.pinktua,
-                        title: const Text(
-                          "Saya siap tidak berkomunikasi diluar sistem",
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      CheckboxListTile(
-                        value: _setujuSatuTaarufSatuWaktu,
-                        onChanged: (value) {
-                          setState(() {
-                            _setujuSatuTaarufSatuWaktu = value ?? false;
-                          });
-                        },
-                        activeColor: AppColor.pinktua,
-                        title: const Text(
-                          "Setuju jika hanya satu kali taaruf dalam satu waktu",
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      CheckboxListTile(
-                        value: _setujuKebijakanPrivasi,
-                        onChanged: (value) {
-                          setState(() {
-                            _setujuKebijakanPrivasi = value ?? false;
-                          });
-                        },
-                        activeColor: AppColor.pinktua,
-                        title: const Text(
-                          "Menyetujui kebijakan privasi dan aturan aplikasi",
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _buildPersetujuanSection(),
 
               const SizedBox(height: 30),
 

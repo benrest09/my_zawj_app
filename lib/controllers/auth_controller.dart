@@ -1,5 +1,4 @@
 import 'package:zawj_app/services/firebase_service.dart';
-import 'package:zawj_app/services/preference_handler.dart';
 import 'package:zawj_app/models/user_model_firebase.dart';
 
 class LoginResult {
@@ -49,18 +48,10 @@ class AuthController {
       return LoginResult(success: false, message: error);
     }
 
-    await PreferenceHandler.simpanLogin(
-      userId: user!.id,
-      nama: user.nama,
-      email: user.email,
-      role: user.role,
-    );
-
-    return LoginResult(success: true, user: user);
+    return LoginResult(success: true, user: user!);
   }
 
   Future<void> logout() async {
     await FirebaseService.logout();
-    await PreferenceHandler.logout();
   }
 }

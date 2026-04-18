@@ -25,14 +25,14 @@ class SerasiModel {
   factory SerasiModel.fromMap(Map<String, dynamic> map) {
     return SerasiModel(
       uid: map['uid'] ?? '',
-      namaLengkap: map['namaLengkap'] ?? '-',
-      jenisKelamin: map['jenis_kelamin'] ?? '-',
+      namaLengkap: map['nama_lengkap'] ?? map['namaLengkap'] ?? '-',
+      jenisKelamin: map['jenis_kelamin'] ?? map['jenisKelamin'] ?? '-',
       usia: map['usia'] ?? 0,
       domisili: map['domisili'] ?? '-',
       pendidikan: map['pendidikan'] ?? '-',
       pekerjaan: map['pekerjaan'] ?? '-',
-      tentangSaya: map['tentangSaya'] ?? '-',
-      fotoProfil: map['fotoProfil'],
+      tentangSaya: map['tentang_saya'] ?? map['tentangSaya'] ?? '-',
+      fotoProfil: map['foto_profil'] ?? map['fotoProfil'],
     );
   }
 }
