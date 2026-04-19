@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:zawj_app/extention/navigator.dart';
 import 'package:zawj_app/screens/login_screen.dart';
 import 'package:zawj_app/screens/navbar.dart';
-import 'package:zawj_app/screens/onboarding_screen1.dart';
+import 'package:zawj_app/screens/onboarding_screen.dart';
 import 'package:zawj_app/services/preference_handler.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -29,7 +29,7 @@ class SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (!sudahOnboarding) {
-      context.pushReplacement(const OnboardingScreen1());
+      context.pushReplacement(const OnboardingScreen());
     } else if (user != null) {
       context.pushReplacement(const Navbar());
     } else {
