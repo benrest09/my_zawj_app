@@ -150,9 +150,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               icon: Icons.chevron_right_rounded,
                             ),
                             SizedBox(height: 10),
-                            ElevatedButton(
+                            customButton(
+                              text: 'Sudah Punya Akun',
+                              width: 300,
                               onPressed: finishOnboarding,
-                              child: Text("Sudah Punya Akun"),
+                              backgroundColor:
+                                  AppColor.abumuda, // warna abu-abu
+                              textColor: Colors.white, // opsional, biar kontras
                             ),
                           ] else ...[
                             customButton(
