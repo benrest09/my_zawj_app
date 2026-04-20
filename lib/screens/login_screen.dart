@@ -173,52 +173,52 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                   const SizedBox(height: 20),
 
-                  GestureDetector(
-                    onTap: () async {
-                      final result = await _authController.loginWithGoogle();
+                  // GestureDetector(
+                  //   onTap: () async {
+                  //     final result = await _authController.loginWithGoogle();
 
-                      if (!result.success) {
-                        _showSnackBar(result.message ?? 'Login Google gagal');
-                        return;
-                      }
+                  //     if (!result.success) {
+                  //       _showSnackBar(result.message ?? 'Login Google gagal');
+                  //       return;
+                  //     }
 
-                      _showSnackBar('Login Google berhasil');
+                  //     _showSnackBar('Login Google berhasil');
 
-                      await Future.delayed(const Duration(milliseconds: 600));
+                  //     await Future.delayed(const Duration(milliseconds: 600));
 
-                      if (!mounted) return;
+                  //     if (!mounted) return;
 
-                      if (result.user!.role == 'ustadz') {
-                        context.pushAndRemoveAll(const UstadzChatScreen());
-                      } else {
-                        context.pushAndRemoveAll(Navbar());
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.white,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset('assets/icons/google.png', height: 20),
-                          const SizedBox(width: 10),
-                          Text(
-                            "Masuk dengan Google",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  //     if (result.user!.role == 'ustadz') {
+                  //       context.pushAndRemoveAll(const UstadzChatScreen());
+                  //     } else {
+                  //       context.pushAndRemoveAll(Navbar());
+                  //     }
+                  //   },
+                  //   child: Container(
+                  //     width: double.infinity,
+                  //     padding: const EdgeInsets.symmetric(vertical: 12),
+                  //     decoration: BoxDecoration(
+                  //       border: Border.all(color: Colors.grey.shade300),
+                  //       borderRadius: BorderRadius.circular(10),
+                  //       color: Colors.white,
+                  //     ),
+                  // //     child: Row(
+                  // //       mainAxisAlignment: MainAxisAlignment.center,
+                  // //       children: [
+                  // //         Image.asset('assets/icons/google.png', height: 20),
+                  // //         const SizedBox(width: 10),
+                  // //         Text(
+                  // //           "Masuk dengan Google",
+                  // //           style: GoogleFonts.montserrat(
+                  // //             fontSize: 14,
+                  // //             fontWeight: FontWeight.w600,
+                  // //             color: Colors.black87,
+                  // //           ),
+                  // //         ),
+                  // //       ],
+                  // //     ),
+                  //   ),
+                  // ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
