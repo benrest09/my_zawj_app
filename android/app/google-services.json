@@ -12,7 +12,20 @@
           "package_name": "com.ning.my_zawj_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "918249106970-i3tn580tdlrjc8ro8p3obhp8v4o9upef.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ning.my_zawj_app",
+            "certificate_hash": "673638d17540a01a3cb2d2671d8ed44ef4d79c16"
+          }
+        },
+        {
+          "client_id": "918249106970-o7q8auqqeqqv60ucpd1ssor00476m2ij.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBCVYNnppqGnF7-jX4K-7jkYNxP6XxsZWg"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "918249106970-o7q8auqqeqqv60ucpd1ssor00476m2ij.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "918249106970-e1sc3mm0j3nqmuiasvs1or268s9ofgef.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.myZawjApp"
+              }
+            }
+          ]
         }
       }
     }

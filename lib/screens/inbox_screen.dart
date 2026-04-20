@@ -89,6 +89,44 @@ class _InboxScreenState extends State<InboxScreen> {
   }
 
   Future<void> _terimaRequest(InboxModel item) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Konfirmasi Taaruf',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menerima pengajuan taaruf ini?',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColor.pinktua),
+            child: Text(
+              'Terima',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
     final result = await _controller.terimaTaaruf(item.id);
 
     if (!mounted) return;
@@ -124,17 +162,35 @@ class _InboxScreenState extends State<InboxScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Inbox'),
-        content: const Text('Apakah Anda yakin ingin menghapus inbox ini?'),
+        title: Text(
+          'Hapus Inbox',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus inbox ini?',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.bold),
+        ),
         actions: [
           TextButton(
             onPressed: () => context.pop(false),
-            child: const Text('Batal'),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () => context.pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColor.error),
-            child: const Text('Hapus'),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.montserrat(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
       ),

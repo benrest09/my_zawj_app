@@ -5,7 +5,6 @@ import 'package:zawj_app/screens/artikel_screen.dart';
 import 'package:zawj_app/widgets/app_color.dart';
 import 'package:zawj_app/widgets/ayat_harian.dart';
 import 'package:zawj_app/widgets/custom_button.dart';
-import 'package:zawj_app/widgets/kategori_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -130,85 +129,32 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 10),
 
-            Container(
-              margin: EdgeInsetsDirectional.symmetric(horizontal: 15),
-              child: Column(
-                children: [
-                  Text(
-                    "Kategori Edukasi",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColor.hitam,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: kategoriButton(
-                          icon: Icons.book_outlined,
-                          label: 'Fiqih Pernikahan',
-                          onTap: () {
-                            // Navigasi ke halaman kategori
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: kategoriButton(
-                          icon: Icons.favorite_border_outlined,
-                          label: 'Adab Taaruf',
-                          onTap: () {
-                            // Navigasi ke halaman kategori
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: kategoriButton(
-                          icon: Icons.people_outlined,
-                          label: 'Suami Istri',
-                          onTap: () {
-                            // Navigasi ke halaman kategori
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                    ],
-                  ),
-                  SizedBox(height: 40),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(12.0),
-                        margin: EdgeInsets.all(15.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color.fromARGB(255, 211, 208, 208),
-                              blurRadius: 15,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [ayatHarian()],
-                        ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12.0),
+                  margin: EdgeInsets.all(15.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromARGB(255, 211, 208, 208),
+                        blurRadius: 15,
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
-                ],
-              ),
+
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [ayatHarian()],
+                  ),
+                ),
+              ],
             ),
           ],
         ),

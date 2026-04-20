@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zawj_app/controllers/chat_controller.dart';
+import 'package:zawj_app/widgets/custom_textfield.dart';
 
 class GroupChatScreen extends StatefulWidget {
   final String ruangChatId;
@@ -36,11 +37,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   }
 
   Future<void> _kirimPesan() async {
-    if (_pesanController.text.trim().isEmpty) return;
+    final text = _pesanController.text.trim();
+    if (text.isEmpty) return;
 
     await _chatController.kirimPesan(
       ruangChatId: widget.ruangChatId,
-      pesan: _pesanController.text,
+      pesan: text,
     );
 
     _pesanController.clear();
@@ -67,7 +69,6 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               ? CrossAxisAlignment.end
               : CrossAxisAlignment.start,
           children: [
-            // Nama pengirim hanya tampil untuk pesan orang lain
             if (!isMe && namaPengirim.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
@@ -90,21 +91,28 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   Widget _buildInputArea() {
     return SafeArea(
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
         child: Row(
           children: [
             Expanded(
               child: TextField(
                 controller: _pesanController,
-                decoration: InputDecoration(
-                  hintText: 'Tulis pesan...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
+                textInputAction: TextInputAction.send,
+                onSubmitted: (_) => _kirimPesan(),
+                decoration: customTextField(hintText: 'Tulis pesan...'),
               ),
             ),
-            IconButton(onPressed: _kirimPesan, icon: const Icon(Icons.send)),
+            const SizedBox(width: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.pink,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                onPressed: _kirimPesan,
+                icon: const Icon(Icons.send, color: Colors.white),
+              ),
+            ),
           ],
         ),
       ),
@@ -126,9 +134,17 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           stream: _chatController.streamInfoRuangChat(widget.ruangChatId),
           builder: (context, snapshot) {
             final title =
-                snapshot.data?['title']?.toString() ??
-                widget.namaLawanBicara;
-            return Text(title);
+                snapshot.data?['title']?.toString() ?? widget.namaLawanBicara;
+
+            return Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            );
           },
         ),
       ),
@@ -149,6 +165,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
                 return ListView.builder(
                   controller: _scrollController,
+                  padding: const EdgeInsets.only(top: 8, bottom: 8),
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     final data = docs[index];

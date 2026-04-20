@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(height: 50),
+                  SizedBox(height: 150),
                   Text(
                     "Selamat Datang",
                     style: GoogleFonts.montaga(
@@ -163,17 +163,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        "Lupa Password?",
-                        style: TextStyle(color: AppColor.pinktua, fontSize: 14),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 20),
                   _isLoading
                       ? const CircularProgressIndicator()
@@ -182,98 +171,55 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: double.infinity,
                           onPressed: _handleLogin,
                         ),
-                  const SizedBox(height: 30),
-                  Text(
-                    "Atau lanjutkan dengan",
-                    style: GoogleFonts.montaga(
-                      color: AppColor.abumuda,
-                      fontSize: 14,
+                  const SizedBox(height: 20),
+
+                  GestureDetector(
+                    onTap: () async {
+                      final result = await _authController.loginWithGoogle();
+
+                      if (!result.success) {
+                        _showSnackBar(result.message ?? 'Login Google gagal');
+                        return;
+                      }
+
+                      _showSnackBar('Login Google berhasil');
+
+                      await Future.delayed(const Duration(milliseconds: 600));
+
+                      if (!mounted) return;
+
+                      if (result.user!.role == 'ustadz') {
+                        context.pushAndRemoveAll(const UstadzChatScreen());
+                      } else {
+                        context.pushAndRemoveAll(Navbar());
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.white,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset('assets/icons/google.png', height: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            "Masuk dengan Google",
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(50),
-                        onTap: () {},
-                        child: Container(
-                          width: 55,
-                          height: 55,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColor.abumuda,
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/icons/google.png',
-                              width: 28,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(50),
-                        onTap: () {},
-                        child: Container(
-                          width: 55,
-                          height: 55,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColor.abumuda,
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/icons/apple.png',
-                              width: 28,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(50),
-                        onTap: () {},
-                        child: Container(
-                          width: 55,
-                          height: 55,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColor.abumuda,
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Image.asset(
-                              'assets/icons/facebook.png',
-                              width: 28,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

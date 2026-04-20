@@ -88,6 +88,8 @@ class ProfileModel {
   });
 
   Map<String, dynamic> toMap() {
+    final isIkhwan = jenisKelamin == 'Ikhwan';
+
     return {
       'uid': uid,
       'fotoProfil': fotoProfil,
@@ -105,11 +107,15 @@ class ProfileModel {
       'penghasilan': penghasilan,
       'targetNikah': targetNikah,
       'statusNikah': statusNikah,
-      'mauPoligami': mauPoligami,
+
+     
+      'mauPoligami': isIkhwan ? null : mauPoligami,
+      'panjangHijab': isIkhwan ? null : panjangHijab,
+
       'sholat': sholat,
       'kajianRutin': kajianRutin,
       'hafalanQuran': hafalanQuran,
-      'panjangHijab': panjangHijab,
+
       'tentangSaya': tentangSaya,
       'jumlahAnak': jumlahAnak,
       'waliTahu': waliTahu,

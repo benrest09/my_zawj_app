@@ -355,7 +355,7 @@ class _DetailSerasiScreenState extends State<DetailSerasiScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(Icons.send_rounded),
+                          : const Icon(Icons.send_rounded, color: Colors.white),
                       label: Text(
                         _isSubmitting ? 'Mengirim...' : 'Ajukan Taaruf',
                         style: GoogleFonts.montserrat(

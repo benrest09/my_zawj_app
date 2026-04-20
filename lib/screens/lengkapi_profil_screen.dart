@@ -59,12 +59,53 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
   bool _setujuTidakKomunikasiDiluarSistem = false;
   bool _setujuSatuTaarufSatuWaktu = false;
   bool _setujuKebijakanPrivasi = false;
+  bool get isIkhwan => _jenisKelamin == 'Ikhwan';
 
   String? _fotoKtpPath;
   String? _akteCeraiPath;
   String? _buktiSedekahPath;
 
   bool _isLoading = false;
+
+  // Pink theme override — replaces all default purple Flutter accents
+  ThemeData get _pinkTheme => Theme.of(context).copyWith(
+    colorScheme: Theme.of(context).colorScheme.copyWith(
+      primary: AppColor.pinktua,
+      secondary: AppColor.pinkmuda,
+    ),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColor.pinktua;
+        }
+        return null;
+      }),
+      checkColor: WidgetStateProperty.all(Colors.white),
+      side: const BorderSide(color: AppColor.pinktua, width: 1.5),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return AppColor.pinktua;
+        }
+        return AppColor.abutua;
+      }),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: AppColor.pinktua, width: 1.5),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: AppColor.borderColor, width: 1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey[200]!, width: 1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  );
 
   @override
   void initState() {
@@ -167,6 +208,18 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
       initialDate: DateTime(2000),
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppColor.pinktua,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (pickedDate != null) {
@@ -469,17 +522,10 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
     );
   }
 
-  Widget _buildSpacingField({
-    required String label,
-    required Widget child,
-  }) {
+  Widget _buildSpacingField({required String label, required Widget child}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildFieldLabel(label),
-        child,
-        const SizedBox(height: 10),
-      ],
+      children: [_buildFieldLabel(label), child, const SizedBox(height: 10)],
     );
   }
 
@@ -495,7 +541,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
             value: true,
             groupValue: groupValue,
             onChanged: (value) => onChanged(value ?? false),
-            activeColor: const Color.fromARGB(255, 255, 119, 164),
+            activeColor: AppColor.pinktua,
             contentPadding: EdgeInsets.zero,
           ),
         ),
@@ -505,7 +551,7 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
             value: false,
             groupValue: groupValue,
             onChanged: (value) => onChanged(value ?? false),
-            activeColor: const Color.fromARGB(255, 255, 119, 164),
+            activeColor: AppColor.pinktua,
             contentPadding: EdgeInsets.zero,
           ),
         ),
@@ -522,6 +568,8 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
       value: value,
       onChanged: (newValue) => onChanged(newValue ?? false),
       activeColor: AppColor.pinktua,
+      checkColor: Colors.white,
+      side: const BorderSide(color: AppColor.pinktua, width: 1.5),
       title: Text(title, style: const TextStyle(fontSize: 14)),
       contentPadding: EdgeInsets.zero,
     );
@@ -582,14 +630,18 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
           child: DropdownButtonFormField<String>(
             decoration: customTextField(hintText: "Rutinitas Sholat"),
             initialValue: _sholat,
-            items: [
-              'Selalu tepat waktu',
-              'Sering tepat waktu',
-              'Kadang-kadang',
-              'Jarang',
-            ].map((value) {
-              return DropdownMenuItem<String>(value: value, child: Text(value));
-            }).toList(),
+            items:
+                [
+                  'Selalu tepat waktu',
+                  'Sering tepat waktu',
+                  'Kadang-kadang',
+                  'Jarang',
+                ].map((value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
             onChanged: (newValue) {
               if (newValue == null) return;
               setState(() {
@@ -612,16 +664,20 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
           child: DropdownButtonFormField<String>(
             decoration: customTextField(hintText: "Hafalan Al-Qur'an"),
             initialValue: _hafalanQuran,
-            items: [
-              'Juz 30',
-              '1-5 Juz',
-              '6-10 Juz',
-              '11-20 Juz',
-              '21-30 Juz',
-              '30 Juz',
-            ].map((value) {
-              return DropdownMenuItem<String>(value: value, child: Text(value));
-            }).toList(),
+            items:
+                [
+                  'Juz 30',
+                  '1-5 Juz',
+                  '6-10 Juz',
+                  '11-20 Juz',
+                  '21-30 Juz',
+                  '30 Juz',
+                ].map((value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
             onChanged: (newValue) {
               if (newValue == null) return;
               setState(() {
@@ -640,28 +696,33 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
           },
         ),
         const SizedBox(height: 10),
-        _buildSpacingField(
-          label: "Panjang Hijab",
-          child: DropdownButtonFormField<String>(
-            decoration: customTextField(hintText: "Panjang hijab"),
-            initialValue: _panjangHijab,
-            items: [
-              'Tidak Berhijab',
-              'Lilit leher',
-              'Menutupi dada',
-              'Menutupi perut',
-              'Menutupi lutut',
-            ].map((value) {
-              return DropdownMenuItem<String>(value: value, child: Text(value));
-            }).toList(),
-            onChanged: (newValue) {
-              if (newValue == null) return;
-              setState(() {
-                _panjangHijab = newValue;
-              });
-            },
+        if (!isIkhwan)
+          _buildSpacingField(
+            label: "Panjang Hijab",
+            child: DropdownButtonFormField<String>(
+              decoration: customTextField(hintText: "Panjang hijab"),
+              initialValue: _panjangHijab,
+              items:
+                  [
+                    'Tidak Berhijab',
+                    'Lilit leher',
+                    'Menutupi dada',
+                    'Menutupi perut',
+                    'Menutupi lutut',
+                  ].map((value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+              onChanged: (newValue) {
+                if (newValue == null) return;
+                setState(() {
+                  _panjangHijab = newValue;
+                });
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -873,665 +934,584 @@ class _LengkapiProfilScreenState extends State<LengkapiProfilScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 70,
-        backgroundColor: const Color.fromARGB(255, 250, 238, 246),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Row(
+    return Theme(
+      data: _pinkTheme,
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 70,
+          backgroundColor: const Color.fromARGB(255, 250, 238, 246),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Row(
+                children: [
+                  Text(
+                    'Find My Zawj',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(255, 255, 119, 164),
+                      fontSize: 30,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(
+                    Icons.favorite,
+                    color: Color.fromARGB(255, 239, 97, 144),
+                    size: 24,
+                  ),
+                ],
+              ),
+              Text(
+                'Lengkapi Profil',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColor.abutua,
+                  fontSize: 17,
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
               children: [
-                Text(
-                  'Find My Zawj',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 255, 119, 164),
-                    fontSize: 30,
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person,
+                              color: Colors.pink[300],
+                              size: 30,
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              "Foto Profil",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 23,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: GestureDetector(
+                            onTap: _pilihAvatar,
+                            child: Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.grey[200],
+                                  backgroundImage: _fotoProfilPath != null
+                                      ? AssetImage(_fotoProfilPath!)
+                                      : null,
+                                  child: _fotoProfilPath == null
+                                      ? const Icon(
+                                          Icons.person,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        )
+                                      : null,
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: AppColor.pinktua,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        const Center(
+                          child: Text(
+                            "Klik foto untuk memilih avatar",
+                            style: TextStyle(color: Colors.grey, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                SizedBox(width: 8),
-                Icon(
-                  Icons.favorite,
-                  color: Color.fromARGB(255, 239, 97, 144),
-                  size: 24,
+                const SizedBox(height: 20),
+
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Colors.pink[300],
+                              size: 25,
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              "Informasi Dasar",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 23,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Nama Lengkap",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _namaLengkapController,
+                          decoration: customTextField(hintText: "Nama Lengkap"),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Jenis Kelamin",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<String>(
+                          initialValue: _jenisKelamin,
+                          items: ['Ikhwan', 'Akhwat'].map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (newValue) {
+                            if (newValue == null) return;
+                            setState(() {
+                              _jenisKelamin = newValue;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Tanggal Lahir",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: InkWell(
+                                onTap: _pilihTanggalLahir,
+                                child: IgnorePointer(
+                                  child: TextFormField(
+                                    controller: _tanggalLahirController,
+                                    decoration: customTextField(
+                                      hintText: "dd/mm/yyyy",
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _usiaController,
+                                decoration: customTextField(hintText: "Usia"),
+                                keyboardType: TextInputType.number,
+                                readOnly: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Tempat Lahir",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _tempatLahirController,
+                          decoration: customTextField(hintText: "Tempat Lahir"),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Domisili",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _domisiliController,
+                          decoration: customTextField(hintText: "Domisili"),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Asal Suku",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _sukuController,
+                          decoration: customTextField(
+                            hintText: "Suku atau Etnis",
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Kewarganegaraan",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _kewarganegaraanController,
+                          decoration: customTextField(
+                            hintText: "Kewarganegaraan",
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                _buildPendidikanKarirSection(),
+
+                const SizedBox(height: 20),
+
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.favorite_outline,
+                              color: Colors.pink[300],
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              "Kesiapan Menikah",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 23,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Target menikah dalam",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<String>(
+                          initialValue: _targetNikah,
+                          items:
+                              [
+                                '< 6 bulan',
+                                '6 bulan - 1 tahun',
+                                '1 - 2 tahun',
+                                '> 2 tahun',
+                                'Belum ditentukan',
+                              ].map((value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                          onChanged: (newValue) {
+                            if (newValue == null) return;
+                            setState(() {
+                              _targetNikah = newValue;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Apakah wali sudah mengetahui?",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        _buildYesNoRadio(
+                          groupValue: _waliTahu,
+                          onChanged: (value) {
+                            setState(() {
+                              _waliTahu = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Bersedia pindah kota setelah menikah?",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        _buildYesNoRadio(
+                          groupValue: _bersediaPindah,
+                          onChanged: (value) {
+                            setState(() {
+                              _bersediaPindah = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Tentang Saya",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 23,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _tentangSayaController,
+                          decoration: customTextField(
+                            hintText: "Ceritakan tentang dirimu",
+                          ),
+                          maxLines: 6,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                Card(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.people,
+                              color: Colors.pink[300],
+                              size: 30,
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              "Status Pernikahan",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 23,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<String>(
+                          decoration: customTextField(
+                            hintText: "Status Pernikahan",
+                          ),
+                          initialValue: _statusNikah,
+                          items:
+                              [
+                                'Belum menikah',
+                                'Menikah',
+                                'Cerai Hidup',
+                                'Cerai Mati',
+                              ].map((value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                          onChanged: (newValue) {
+                            if (newValue == null) return;
+
+                            setState(() {
+                              _statusNikah = newValue;
+
+                              if (_statusNikah == 'Belum menikah' ||
+                                  _statusNikah == 'Menikah') {
+                                _akteCeraiPath = null;
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "Memiliki Anak",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        _buildYesNoRadio(
+                          groupValue: _punyaAnak,
+                          onChanged: (value) {
+                            setState(() {
+                              _punyaAnak = value;
+                              if (!_punyaAnak) {
+                                _jumlahAnakController.clear();
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _jumlahAnakController,
+                          decoration: customTextField(hintText: "Jumlah Anak"),
+                          keyboardType: TextInputType.number,
+                          enabled: _punyaAnak,
+                        ),
+                        const SizedBox(height: 10),
+                        if (_jenisKelamin != 'Ikhwan') ...[
+                          const SizedBox(height: 10),
+                          const Text(
+                            "Apakah bersedia poligami?",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<String>(
+                            decoration: customTextField(
+                              hintText: "Apakah bersedia poligami?",
+                            ),
+                            initialValue: _mauPoligami,
+                            items:
+                                [
+                                  'Ya, saya bersedia',
+                                  'InsyaAllah, jika istrinya ridho',
+                                  'Saya harus meyakinkan keluarga',
+                                  'Kurang yakin, tolong yakinkan',
+                                  'Tidak mau',
+                                ].map((value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                            onChanged: (newValue) {
+                              if (newValue == null) return;
+                              setState(() {
+                                _mauPoligami = newValue;
+                              });
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                _buildPemahamanAgamaSection(),
+
+                const SizedBox(height: 20),
+
+                _buildDokumenSection(),
+
+                const SizedBox(height: 20),
+
+                _buildPersetujuanSection(),
+
+                const SizedBox(height: 30),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColor.pinktua,
+                          ),
+                        )
+                      : customButton(
+                          width: 400,
+                          text: "Simpan Profil",
+                          onPressed: _simpanProfil,
+                        ),
                 ),
               ],
             ),
-            Text(
-              'Lengkapi Profil',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColor.abutua,
-                fontSize: 17,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            children: [
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.person, color: Colors.pink[300], size: 30),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "Foto Profil",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: GestureDetector(
-                          onTap: _pilihAvatar,
-                          child: Stack(
-                            children: [
-                              CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.grey[200],
-                                backgroundImage: _fotoProfilPath != null
-                                    ? AssetImage(_fotoProfilPath!)
-                                    : null,
-                                child: _fotoProfilPath == null
-                                    ? const Icon(
-                                        Icons.person,
-                                        size: 50,
-                                        color: Colors.grey,
-                                      )
-                                    : null,
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColor.pinktua,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.edit,
-                                    size: 20,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      const Center(
-                        child: Text(
-                          "Klik foto untuk memilih avatar",
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Colors.pink[300],
-                            size: 25,
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "Informasi Dasar",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Nama Lengkap",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _namaLengkapController,
-                        decoration: customTextField(hintText: "Nama Lengkap"),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Jenis Kelamin",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        initialValue: _jenisKelamin,
-                        items: ['Ikhwan', 'Akhwat'].map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-                          setState(() {
-                            _jenisKelamin = newValue;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Tanggal Lahir",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: InkWell(
-                              onTap: _pilihTanggalLahir,
-                              child: IgnorePointer(
-                                child: TextFormField(
-                                  controller: _tanggalLahirController,
-                                  decoration: customTextField(
-                                    hintText: "dd/mm/yyyy",
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _usiaController,
-                              decoration: customTextField(hintText: "Usia"),
-                              keyboardType: TextInputType.number,
-                              readOnly: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Tempat Lahir",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _tempatLahirController,
-                        decoration: customTextField(hintText: "Tempat Lahir"),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Domisili",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _domisiliController,
-                        decoration: customTextField(hintText: "Domisili"),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Asal Suku",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _sukuController,
-                        decoration: customTextField(
-                          hintText: "Suku atau Etnis",
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Kewarganegaraan",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _kewarganegaraanController,
-                        decoration: customTextField(
-                          hintText: "Kewarganegaraan",
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              _buildPendidikanKarirSection(),
-
-              const SizedBox(height: 20),
-
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.favorite_outline, color: Colors.pink[300]),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Kesiapan Menikah",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Target menikah dalam",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        initialValue: _targetNikah,
-                        items:
-                            [
-                              '< 6 bulan',
-                              '6 bulan - 1 tahun',
-                              '1 - 2 tahun',
-                              '> 2 tahun',
-                              'Belum ditentukan',
-                            ].map((value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-                          setState(() {
-                            _targetNikah = newValue;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Apakah wali sudah mengetahui?",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Ya"),
-                              value: true,
-                              groupValue: _waliTahu,
-                              onChanged: (value) {
-                                setState(() {
-                                  _waliTahu = value ?? false;
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Tidak"),
-                              value: false,
-                              groupValue: _waliTahu,
-                              onChanged: (value) {
-                                setState(() {
-                                  _waliTahu = value ?? false;
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Bersedia pindah kota setelah menikah?",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Ya"),
-                              value: true,
-                              groupValue: _bersediaPindah,
-                              onChanged: (value) {
-                                setState(() {
-                                  _bersediaPindah = value ?? false;
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Tidak"),
-                              value: false,
-                              groupValue: _bersediaPindah,
-                              onChanged: (value) {
-                                setState(() {
-                                  _bersediaPindah = value ?? false;
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Tentang Saya",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 23,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _tentangSayaController,
-                        decoration: customTextField(
-                          hintText: "Ceritakan tentang dirimu",
-                        ),
-                        maxLines: 6,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.people, color: Colors.pink[300], size: 30),
-                          const SizedBox(width: 6),
-                          const Text(
-                            "Status Pernikahan",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 23,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        decoration: customTextField(
-                          hintText: "Status Pernikahan",
-                        ),
-                        initialValue: _statusNikah,
-                        items:
-                            [
-                              'Belum menikah',
-                              'Menikah',
-                              'Cerai Hidup',
-                              'Cerai Mati',
-                            ].map((value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-
-                          setState(() {
-                            _statusNikah = newValue;
-
-                            if (_statusNikah == 'Belum menikah' ||
-                                _statusNikah == 'Menikah') {
-                              _akteCeraiPath = null;
-                            }
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Memiliki Anak",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Ya"),
-                              value: true,
-                              groupValue: _punyaAnak,
-                              onChanged: (value) {
-                                setState(() {
-                                  _punyaAnak = value ?? false;
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text("Tidak"),
-                              value: false,
-                              groupValue: _punyaAnak,
-                              onChanged: (value) {
-                                setState(() {
-                                  _punyaAnak = value ?? false;
-                                  if (!_punyaAnak) {
-                                    _jumlahAnakController.clear();
-                                  }
-                                });
-                              },
-                              activeColor: const Color.fromARGB(
-                                255,
-                                255,
-                                119,
-                                164,
-                              ),
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _jumlahAnakController,
-                        decoration: customTextField(hintText: "Jumlah Anak"),
-                        keyboardType: TextInputType.number,
-                        enabled: _punyaAnak,
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        "Apakah bersedia poligami?",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        decoration: customTextField(
-                          hintText: "Apakah bersedia poligami?",
-                        ),
-                        initialValue: _mauPoligami,
-                        items:
-                            [
-                              'Ya, saya bersedia',
-                              'InsyaAllah, jika istrinya ridho',
-                              'Saya harus meyakinkan keluarga',
-                              'Kurang yakin, tolong yakinkan',
-                              'Tidak mau',
-                            ].map((value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                        onChanged: (newValue) {
-                          if (newValue == null) return;
-                          setState(() {
-                            _mauPoligami = newValue;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              _buildPemahamanAgamaSection(),
-
-              const SizedBox(height: 20),
-
-              _buildDokumenSection(),
-
-              const SizedBox(height: 20),
-
-              _buildPersetujuanSection(),
-
-              const SizedBox(height: 30),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : customButton(
-                        width: 400,
-                        text: "Simpan Profil",
-                        onPressed: _simpanProfil,
-                      ),
-              ),
-            ],
           ),
         ),
       ),

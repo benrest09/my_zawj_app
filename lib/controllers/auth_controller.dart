@@ -51,6 +51,16 @@ class AuthController {
     return LoginResult(success: true, user: user!);
   }
 
+  Future<LoginResult> loginWithGoogle() async {
+    final (user, error) = await FirebaseService.loginWithGoogle();
+
+    if (error != null) {
+      return LoginResult(success: false, message: error);
+    }
+
+    return LoginResult(success: true, user: user!);
+  }
+
   Future<void> logout() async {
     await FirebaseService.logout();
   }

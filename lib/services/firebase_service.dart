@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zawj_app/models/user_model_firebase.dart';
 
 class FirebaseService {
@@ -83,6 +84,42 @@ class FirebaseService {
       } else if (e.code == 'network-request-failed') {
         return (null, 'Koneksi internet bermasalah, coba lagi');
       }
+      return (null, e.message ?? e.code);
+    } catch (e) {
+      return (null, e.toString());
+    }
+  }
+
+  /// LOGIN DENGAN GOOGLE
+  static Future<(UserModelFirebase?, String?)> loginWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        return (null, 'Login dibatalkan');
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      final user = userCredential.user;
+      if (user == null) return (null, 'User tidak ditemukan');
+
+      final userModel = await _syncUserDocument(
+        uid: user.uid,
+        email: user.email ?? '',
+        nama: user.displayName ?? 'User',
+      );
+
+      return (userModel, null);
+    } on FirebaseAuthException catch (e) {
       return (null, e.message ?? e.code);
     } catch (e) {
       return (null, e.toString());
