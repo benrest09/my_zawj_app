@@ -218,27 +218,27 @@ class _SerasiScreenState extends State<SerasiScreen> {
     return Scaffold(
       backgroundColor: const Color(0xffFAFAFA),
       appBar: AppBar(
-        toolbarHeight: 70,
-        backgroundColor: Colors.white,
-        elevation: 0,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 50,
         title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Find My Zawj',
-              style: GoogleFonts.poppins(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: AppColor.pinktua,
-              ),
-            ),
-            Text(
-              'Temukan pasangan yang serasi',
-              style: GoogleFonts.montserrat(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColor.abutua,
-              ),
+            Row(
+              children: [
+                Text(
+                  'Serasi',
+                  style: GoogleFonts.poppins(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFE76CA3),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(
+                  Icons.favorite,
+                  color: Color.fromARGB(255, 239, 97, 144),
+                  size: 24,
+                ),
+              ],
             ),
           ],
         ),

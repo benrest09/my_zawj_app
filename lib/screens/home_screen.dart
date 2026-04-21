@@ -20,21 +20,25 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         toolbarHeight: 50,
-        title: Row(
+        title: Column(
           children: [
-            Text(
-              'Find My Zawj',
-              style: GoogleFonts.poppins(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: const Color(0xFFE76CA3),
-              ),
-            ),
-            SizedBox(width: 8),
-            Icon(
-              Icons.favorite,
-              color: Color.fromARGB(255, 239, 97, 144),
-              size: 24,
+            Row(
+              children: [
+                Text(
+                  'Find My Zawj',
+                  style: GoogleFonts.poppins(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFE76CA3),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(
+                  Icons.favorite,
+                  color: Color.fromARGB(255, 239, 97, 144),
+                  size: 24,
+                ),
+              ],
             ),
           ],
         ),

@@ -225,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text(
                         "Belum Punya Akun? ",
-                        style: GoogleFonts.montaga(
+                        style: GoogleFonts.montserrat(
                           fontSize: 14,
                           color: AppColor.abumuda,
                         ),

@@ -18,9 +18,34 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Text(
-        'Belum ada percakapan',
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.message_outlined, size: 72, color: AppColor.abutua),
+            SizedBox(height: 16),
+            Text(
+              'Belum ada percakapan',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColor.hitam,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Belum ada group taaruf bersama calonmu.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.montserrat(
+                fontSize: 13,
+                color: AppColor.abutua,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -90,13 +115,29 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text(
-          'Pesan',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            color: AppColor.pinktua,
-          ),
+        automaticallyImplyLeading: false,
+        toolbarHeight: 50,
+        title: Column(
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Pesan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFE76CA3),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(
+                  Icons.favorite,
+                  color: Color.fromARGB(255, 239, 97, 144),
+                  size: 24,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
       body: user == null

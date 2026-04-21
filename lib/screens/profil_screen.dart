@@ -335,15 +335,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Profil Saya",
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.bold,
-            color: AppColor.hitam,
-          ),
+        automaticallyImplyLeading: false,
+        toolbarHeight: 50,
+        title: Column(
+          children: [
+            Row(
+              children: [
+                Text(
+                  'Profil Saya',
+                  style: GoogleFonts.poppins(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFE76CA3),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(
+                  Icons.favorite,
+                  color: Color.fromARGB(255, 239, 97, 144),
+                  size: 24,
+                ),
+              ],
+            ),
+          ],
         ),
-        backgroundColor: Colors.white,
-        elevation: 0,
       ),
       backgroundColor: const Color(0xfffafafa),
       body: _isLoading
